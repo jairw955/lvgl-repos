@@ -67,6 +67,8 @@ void lv_img_cache_set_size(uint16_t new_slot_num);
  */
 void lv_img_cache_invalidate_src(const void * src);
 
+bool _lv_img_cache_get_info(const void * src, lv_img_header_t * header);
+
 /**********************
  *      MACROS
  **********************/
