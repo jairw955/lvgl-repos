@@ -64,6 +64,17 @@ void lv_gif_set_src(lv_obj_t * obj, const void * src)
         gd_close_gif(gifobj->gif);
         gifobj->gif = NULL;
         gifobj->imgdsc.data = NULL;
+#if LV_GIF_CACHE
+        while(gifobj->canvas_list) {
+            lv_gif_canvas_t * next = gifobj->canvas_list->next;
+            if(gifobj->canvas_list->data)
+                free(gifobj->canvas_list->data);
+            free(gifobj->canvas_list);
+            gifobj->canvas_list = next;
+        }
+        gifobj->canvas_list = NULL;
+        gifobj->canvas_cur = NULL;
+#endif
     }
 
     if(lv_img_src_get_type(src) == LV_IMG_SRC_VARIABLE) {
@@ -85,6 +96,52 @@ void lv_gif_set_src(lv_obj_t * obj, const void * src)
     gifobj->imgdsc.header.w = gifobj->gif->width;
     gifobj->last_call = lv_tick_get();
 
+#if LV_GIF_CACHE
+    int data_len;
+    int i = 0;
+    lv_gif_canvas_t * canvas_tmp;
+    lv_gif_canvas_t * canvas = malloc(sizeof(lv_gif_canvas_t));
+    gifobj->canvas_list = canvas;
+    gifobj->canvas_cur = canvas;
+#if LV_COLOR_DEPTH == 32
+    data_len = gifobj->gif->height * gifobj->gif->width * 4;
+#elif LV_COLOR_DEPTH == 16
+    data_len = gifobj->gif->height * gifobj->gif->width * 2;
+#else
+    data_len = gifobj->gif->height * gifobj->gif->width;
+#endif
+    canvas->data = malloc(data_len);
+    memcpy(canvas->data, gifobj->gif->canvas, data_len);
+    canvas->next = NULL;
+    gifobj->imgdsc.data = canvas->data;
+    while(1) {
+        int has_next = gd_get_frame(gifobj->gif);
+        if(has_next == 0) {
+            if(gifobj->gif->loop_count > 1)  gifobj->gif->loop_count--;
+            gd_rewind(gifobj->gif);
+            break;
+        }
+        gd_render_frame(gifobj->gif, (uint8_t *)gifobj->gif->canvas);
+        canvas_tmp = malloc(sizeof(lv_gif_canvas_t));
+        canvas_tmp->next = NULL;
+        canvas->next = canvas_tmp;
+        canvas = canvas_tmp;
+        canvas->data = malloc(data_len);
+        memcpy(canvas->data, gifobj->gif->canvas, data_len);
+    }
+    canvas_tmp = gifobj->canvas_list;
+    for(i = 0; i < 2 && canvas_tmp; i++) {
+        int has_next = gd_get_frame(gifobj->gif);
+        if(has_next == 0) {
+            if(gifobj->gif->loop_count > 1)  gifobj->gif->loop_count--;
+            gd_rewind(gifobj->gif);
+            break;
+        }
+        gd_render_frame(gifobj->gif, (uint8_t *)gifobj->gif->canvas);
+        memcpy(canvas_tmp->data, gifobj->gif->canvas, data_len);
+        canvas_tmp = canvas_tmp->next;
+    }
+#endif
     lv_img_set_src(obj, &gifobj->imgdsc);
 
     lv_timer_resume(gifobj->timer);
@@ -124,6 +181,17 @@ static void lv_gif_destructor(const lv_obj_class_t * class_p, lv_obj_t * obj)
     lv_img_cache_invalidate_src(&gifobj->imgdsc);
     if(gifobj->gif)
         gd_close_gif(gifobj->gif);
+#if LV_GIF_CACHE
+    while(gifobj->canvas_list) {
+        lv_gif_canvas_t * next = gifobj->canvas_list->next;
+        if(gifobj->canvas_list->data)
+            free(gifobj->canvas_list->data);
+        free(gifobj->canvas_list);
+        gifobj->canvas_list = next;
+    }
+    gifobj->canvas_list = NULL;
+    gifobj->canvas_cur = NULL;
+#endif
     lv_timer_del(gifobj->timer);
 }
 
@@ -136,6 +204,16 @@ static void next_frame_task_cb(lv_timer_t * t)
 
     gifobj->last_call = lv_tick_get();
 
+#if LV_GIF_CACHE
+    if(gifobj->canvas_cur->next) {
+        gifobj->canvas_cur = gifobj->canvas_cur->next;
+    }
+    else {
+        gifobj->canvas_cur = gifobj->canvas_list;
+    }
+    if(gifobj->canvas_cur)
+        gifobj->imgdsc.data = gifobj->canvas_cur->data;
+#else
     int has_next = gd_get_frame(gifobj->gif);
     if(has_next == 0) {
         /*It was the last repeat*/
@@ -145,7 +223,7 @@ static void next_frame_task_cb(lv_timer_t * t)
     }
 
     gd_render_frame(gifobj->gif, (uint8_t *)gifobj->imgdsc.data);
-
+#endif
     lv_img_cache_invalidate_src(lv_img_get_src(obj));
     lv_obj_invalidate(obj);
 }
