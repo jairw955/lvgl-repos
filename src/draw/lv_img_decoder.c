@@ -86,6 +86,9 @@ lv_res_t lv_img_decoder_get_info(const void * src, lv_img_header_t * header)
 
     if(src == NULL) return LV_RES_INV;
 
+    if(_lv_img_cache_get_info(src, header) == true) {
+        return LV_RES_OK;
+    }
     lv_img_src_t src_type = lv_img_src_get_type(src);
     if(src_type == LV_IMG_SRC_VARIABLE) {
         const lv_img_dsc_t * img_dsc = src;
