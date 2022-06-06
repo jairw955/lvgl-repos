@@ -140,6 +140,49 @@ _lv_img_cache_entry_t * _lv_img_cache_open(const void * src, lv_color_t color, i
     return cached_src;
 }
 
+bool _lv_img_cache_get_info(const void * src, lv_img_header_t * header)
+{
+    /*Is the image cached?*/
+    _lv_img_cache_entry_t * cached_src = NULL;
+
+#if LV_IMG_CACHE_DEF_SIZE
+    if(entry_cnt == 0) {
+        LV_LOG_ERROR("lv_img_cache_open: the cache size is 0");
+        return NULL;
+    }
+
+    _lv_img_cache_entry_t * cache = LV_GC_ROOT(_lv_img_cache_array);
+
+    /*Decrement all lifes. Make the entries older*/
+    uint16_t i;
+    for(i = 0; i < entry_cnt; i++) {
+        if(cache[i].life > INT32_MIN + LV_IMG_CACHE_AGING) {
+            cache[i].life -= LV_IMG_CACHE_AGING;
+        }
+    }
+
+    for(i = 0; i < entry_cnt; i++) {
+        if(lv_img_cache_match(src, cache[i].dec_dsc.src)) {
+            /*If opened increment its life.
+             *Image difficult to open should live longer to keep avoid frequent their recaching.
+             *Therefore increase `life` with `time_to_open`*/
+            cached_src = &cache[i];
+            cached_src->life += cached_src->dec_dsc.time_to_open * LV_IMG_CACHE_LIFE_GAIN;
+            if(cached_src->life > LV_IMG_CACHE_LIFE_LIMIT) cached_src->life = LV_IMG_CACHE_LIFE_LIMIT;
+            LV_LOG_TRACE("image source found in the cache");
+            break;
+        }
+    }
+
+    /*The image is not cached then cache it now*/
+    if(cached_src) {
+        memcpy(header, &cached_src->dec_dsc.header, sizeof(lv_img_header_t));
+        return true;
+    }
+#endif
+    return false;
+}
+
 /**
  * Set the number of images to be cached.
  * More cached images mean more opened image at same time which might mean more memory usage.
