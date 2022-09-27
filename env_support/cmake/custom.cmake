@@ -30,6 +30,22 @@ add_library(lvgl::lvgl ALIAS lvgl)
 #add_library(lvgl_demos STATIC ${DEMO_SOURCES})
 #add_library(lvgl::demos ALIAS lvgl_demos)
 
+if (LV_USE_DEMO_WIDGETS)
+    add_definitions(-DLV_USE_DEMO_WIDGETS)
+endif()
+if (LV_USE_DEMO_KEYPAD_AND_ENCODER)
+    add_definitions(-DLV_USE_DEMO_KEYPAD_AND_ENCODER)
+endif()
+if (LV_USE_DEMO_BENCHMARK)
+    add_definitions(-DLV_USE_DEMO_BENCHMARK)
+endif()
+if (LV_USE_DEMO_STRESS)
+    add_definitions(-DLV_USE_DEMO_STRESS)
+endif()
+if (LV_USE_DEMO_MUSIC)
+    add_definitions(-DLV_USE_DEMO_MUSIC)
+endif()
+
 target_compile_definitions(
   lvgl PUBLIC $<$<BOOL:${LV_LVGL_H_INCLUDE_SIMPLE}>:LV_LVGL_H_INCLUDE_SIMPLE>
               $<$<BOOL:${LV_CONF_INCLUDE_SIMPLE}>:LV_CONF_INCLUDE_SIMPLE>)
