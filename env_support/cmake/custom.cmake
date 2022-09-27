@@ -14,6 +14,8 @@ get_filename_component(LV_CONF_DIR ${LV_CONF_PATH} DIRECTORY)
 # Option to build shared libraries (as opposed to static), default: OFF
 option(BUILD_SHARED_LIBS "Build shared libraries" ON)
 
+option(INSTALL_LVGL_DEMOS "Install lvgl_demos" OFF)
+
 file(GLOB_RECURSE SOURCES ${LVGL_ROOT_DIR}/src/*.c)
 file(GLOB_RECURSE EXAMPLE_SOURCES ${LVGL_ROOT_DIR}/examples/*.c)
 file(GLOB_RECURSE DEMO_SOURCES ${LVGL_ROOT_DIR}/demos/*.c)
@@ -27,8 +29,29 @@ endif()
 add_library(lvgl::lvgl ALIAS lvgl)
 add_library(lvgl_examples STATIC ${EXAMPLE_SOURCES})
 add_library(lvgl::examples ALIAS lvgl_examples)
-add_library(lvgl_demos STATIC ${DEMO_SOURCES})
+add_library(lvgl_demos SHARED ${DEMO_SOURCES})
 add_library(lvgl::demos ALIAS lvgl_demos)
+
+if (LV_USE_DEMO_WIDGETS)
+    add_definitions(-DLV_USE_DEMO_WIDGETS)
+    set(INSTALL_LVGL_DEMOS ON)
+endif()
+if (LV_USE_DEMO_KEYPAD_AND_ENCODER)
+    add_definitions(-DLV_USE_DEMO_KEYPAD_AND_ENCODER)
+    set(INSTALL_LVGL_DEMOS ON)
+endif()
+if (LV_USE_DEMO_BENCHMARK)
+    add_definitions(-DLV_USE_DEMO_BENCHMARK)
+    set(INSTALL_LVGL_DEMOS ON)
+endif()
+if (LV_USE_DEMO_STRESS)
+    add_definitions(-DLV_USE_DEMO_STRESS)
+    set(INSTALL_LVGL_DEMOS ON)
+endif()
+if (LV_USE_DEMO_MUSIC)
+    add_definitions(-DLV_USE_DEMO_MUSIC)
+    set(INSTALL_LVGL_DEMOS ON)
+endif()
 
 target_compile_definitions(
   lvgl PUBLIC $<$<BOOL:${LV_LVGL_H_INCLUDE_SIMPLE}>:LV_LVGL_H_INCLUDE_SIMPLE>
@@ -77,3 +100,7 @@ install(
   LIBRARY DESTINATION "${LIB_INSTALL_DIR}"
   RUNTIME DESTINATION "${LIB_INSTALL_DIR}"
   PUBLIC_HEADER DESTINATION "${INC_INSTALL_DIR}")
+
+if (INSTALL_LVGL_DEMOS)
+  install(TARGETS lvgl_demos)
+endif()
