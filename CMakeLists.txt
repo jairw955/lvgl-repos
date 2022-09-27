@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.12.4)
 project(lv_drivers HOMEPAGE_URL https://github.com/lvgl/lv_drivers/)
 
 # Option to build as shared library (as opposed to static), default: OFF
-option(BUILD_SHARED_LIBS "Build shared as library (as opposed to static)" OFF)
+option(BUILD_SHARED_LIBS "Build shared as library (as opposed to static)" ON)
 
 file(GLOB_RECURSE SOURCES ./*.c)
 
