@@ -16,6 +16,9 @@ endif()
 add_library(lvgl_drivers ALIAS lv_drivers)
 add_library(lvgl::drivers ALIAS lv_drivers)
 
+add_definitions(-g -DLV_CONF_INCLUDE_SIMPLE)
+include_directories(${CMAKE_SYSROOT}/usr/include/libdrm/)
+
 target_include_directories(lv_drivers SYSTEM PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
 find_package(PkgConfig)
