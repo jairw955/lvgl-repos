@@ -12,7 +12,7 @@ option(LV_CONF_PATH "Path defined for lv_conf.h")
 get_filename_component(LV_CONF_DIR ${LV_CONF_PATH} DIRECTORY)
 
 # Option to build shared libraries (as opposed to static), default: OFF
-option(BUILD_SHARED_LIBS "Build shared libraries" OFF)
+option(BUILD_SHARED_LIBS "Build shared libraries" ON)
 
 file(GLOB_RECURSE SOURCES ${LVGL_ROOT_DIR}/src/*.c)
 file(GLOB_RECURSE EXAMPLE_SOURCES ${LVGL_ROOT_DIR}/examples/*.c)
