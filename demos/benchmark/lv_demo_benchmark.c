@@ -616,7 +616,7 @@ static scene_dsc_t scenes[] = {
     {.name = "Text large compressed",        .weight = 10, .create_cb = txt_large_compr_cb},
 
     {.name = "Line",                         .weight = 10, .create_cb = line_cb},
-
+#if 0
     {.name = "Arc think",                    .weight = 10, .create_cb = arc_think_cb},
     {.name = "Arc thick",                    .weight = 10, .create_cb = arc_thick_cb},
 
@@ -627,7 +627,7 @@ static scene_dsc_t scenes[] = {
     {.name = "Substr. line",                 .weight = 10, .create_cb = sub_line_cb},
     {.name = "Substr. arc",                  .weight = 10, .create_cb = sub_arc_cb},
     {.name = "Substr. text",                 .weight = 10, .create_cb = sub_text_cb},
-
+#endif
     {.name = "", .create_cb = NULL}
 };
 
