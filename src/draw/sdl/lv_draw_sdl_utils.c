@@ -143,6 +143,10 @@ void lv_sdl_to_8bpp(uint8_t * dest, const uint8_t * src, int width, int height, 
     int curbit;
     uint8_t opa_mask;
     const uint8_t * opa_table;
+
+    if (!dest || !src)
+        return;
+
     switch(bpp) {
         case 1:
             opa_mask = 0x1;
