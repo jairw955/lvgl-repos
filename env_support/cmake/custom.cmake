@@ -68,6 +68,8 @@ target_include_directories(lvgl_examples SYSTEM
                            PUBLIC ${LVGL_ROOT_DIR}/examples)
 target_include_directories(lvgl_demos SYSTEM
                            PUBLIC ${LVGL_ROOT_DIR}/demos)
+include_directories(
+  ${CMAKE_SYSROOT}/usr/include/freetype2/)
 
 target_link_libraries(lvgl_examples PUBLIC lvgl)
 target_link_libraries(lvgl_demos PUBLIC lvgl)
