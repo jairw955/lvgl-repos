@@ -54,7 +54,9 @@ target_compile_definitions(
               $<$<BOOL:${LV_CONF_INCLUDE_SIMPLE}>:LV_CONF_INCLUDE_SIMPLE>)
 
 # Include root and optional parent path of LV_CONF_PATH
-target_include_directories(lvgl SYSTEM PUBLIC ${LVGL_ROOT_DIR} ${LV_CONF_DIR})
+target_include_directories(
+  lvgl SYSTEM PUBLIC ${LVGL_ROOT_DIR} ${LV_CONF_DIR}
+                     ${CMAKE_SYSROOT}/usr/include/freetype2/)
 
 # Include /examples folder
 #target_include_directories(lvgl_examples SYSTEM
