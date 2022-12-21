@@ -47,6 +47,8 @@
  **********************/
 typedef struct {
     lv_draw_sdl_drv_param_t drv_param;
+    lv_coord_t hor_res;
+    lv_coord_t ver_res;
     SDL_Window * window;
     SDL_Texture * texture;
 }monitor_t;
@@ -91,7 +93,11 @@ void sdl_init(void)
 void sdl_disp_drv_init(lv_disp_drv_t * disp_drv, lv_coord_t hor_res, lv_coord_t ver_res)
 {
     monitor_t *m = lv_mem_alloc(sizeof(monitor_t));
+    m->hor_res = hor_res;
+    m->ver_res = ver_res;
     window_create(m);
+    hor_res = m->hor_res;
+    ver_res = m->ver_res;
     lv_disp_drv_init(disp_drv);
     disp_drv->direct_mode = 1;
     disp_drv->flush_cb = monitor_flush;
@@ -243,13 +249,22 @@ static void monitor_sdl_clean_up(void)
 static void window_create(monitor_t * m)
 {
 //    SDL_SetHint( SDL_HINT_RENDER_SCALE_QUALITY, "1");
+    SDL_Rect rect;
+
+    if (!m->hor_res || !m->ver_res) {
+        SDL_GetDisplayBounds(0, &rect);
+        m->hor_res = rect.w;
+        m->ver_res = rect.h;
+    }
+
     m->window = SDL_CreateWindow("TFT Simulator",
                               SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
-                              SDL_HOR_RES * SDL_ZOOM, SDL_VER_RES * SDL_ZOOM, SDL_WINDOW_RESIZABLE);
+                              m->hor_res * SDL_ZOOM, m->ver_res * SDL_ZOOM,
+                              SDL_WINDOW_RESIZABLE);
 
     m->drv_param.renderer = SDL_CreateRenderer(m->window, -1, SDL_RENDERER_ACCELERATED);
 
-    m->texture = lv_draw_sdl_create_screen_texture(m->drv_param.renderer, SDL_HOR_RES, SDL_VER_RES);
+    m->texture = lv_draw_sdl_create_screen_texture(m->drv_param.renderer, m->hor_res, m->ver_res);
     /* For first frame */
     SDL_SetRenderTarget(m->drv_param.renderer, m->texture);
 }
@@ -257,13 +272,14 @@ static void window_create(monitor_t * m)
 static void window_update(lv_disp_drv_t *disp_drv, void * buf)
 {
     SDL_Renderer *renderer = ((lv_draw_sdl_drv_param_t *) disp_drv->user_data)->renderer;
+    monitor_t *m = (monitor_t *)disp_drv->user_data;
     SDL_Texture *texture = buf;
     SDL_SetRenderTarget(renderer, NULL);
     SDL_RenderClear(renderer);
 #if LV_COLOR_SCREEN_TRANSP
     SDL_SetRenderDrawColor(renderer, 0xff, 0, 0, 0xff);
     SDL_Rect r;
-    r.x = 0; r.y = 0; r.w = SDL_HOR_RES; r.h = SDL_VER_RES;
+    r.x = 0; r.y = 0; r.w = m->hor_res; r.h = m->ver_res;
     SDL_RenderDrawRect(renderer, &r);
 #endif
 
