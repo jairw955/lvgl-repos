@@ -52,6 +52,9 @@ if (LV_USE_DEMO_MUSIC)
     add_definitions(-DLV_USE_DEMO_MUSIC)
     set(INSTALL_LVGL_DEMOS ON)
 endif()
+if (LV_USE_GPU_SDL)
+    add_definitions(-DLV_USE_GPU_SDL)
+endif()
 
 target_compile_definitions(
   lvgl PUBLIC $<$<BOOL:${LV_LVGL_H_INCLUDE_SIMPLE}>:LV_LVGL_H_INCLUDE_SIMPLE>
