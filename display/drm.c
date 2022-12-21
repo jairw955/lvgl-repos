@@ -65,6 +65,7 @@ struct drm_dev {
 	drmModePropertyPtr plane_props[128];
 	drmModePropertyPtr crtc_props[128];
 	drmModePropertyPtr conn_props[128];
+	struct drm_buffer draw_buf;
 	struct drm_buffer drm_bufs[2]; /* DUMB buffers */
 	struct drm_buffer *cur_bufs[2]; /* double buffering handling */
 } drm_dev;
@@ -790,6 +791,23 @@ void drm_init(void)
 	}
 
 	info("DRM subsystem and buffer mapped successfully");
+}
+
+void drm_disp_drv_init(lv_disp_drv_t * disp_drv)
+{
+	int ret;
+
+	lv_disp_drv_init(disp_drv);
+	disp_drv->direct_mode = 1;
+	disp_drv->flush_cb = drm_flush;
+	disp_drv->hor_res = drm_dev.width;
+	disp_drv->ver_res = drm_dev.height;
+	lv_disp_draw_buf_t *disp_buf = lv_mem_alloc(sizeof(lv_disp_draw_buf_t));
+	ret = drm_allocate_dumb(&drm_dev.draw_buf);
+	lv_disp_draw_buf_init(disp_buf, drm_dev.draw_buf.map, NULL,
+			      drm_dev.width * drm_dev.height);
+	disp_drv->draw_buf = disp_buf;
+	disp_drv->antialiasing = 1;
 }
 
 void drm_exit(void)
