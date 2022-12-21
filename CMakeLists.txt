@@ -16,6 +16,13 @@ endif()
 add_library(lvgl_drivers ALIAS lv_drivers)
 add_library(lvgl::drivers ALIAS lv_drivers)
 
+if (LV_DRV_USE_SDL_GPU)
+    add_definitions(-DUSE_SDL_GPU=1)
+    add_definitions(-DLV_USE_GPU_SDL=1)
+endif()
+if (LV_DRV_USE_DRM)
+    add_definitions(-DUSE_DRM=1)
+endif()
 add_definitions(-g -DLV_CONF_INCLUDE_SIMPLE)
 include_directories(${CMAKE_SYSROOT}/usr/include/libdrm/)
 
