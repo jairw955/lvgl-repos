@@ -866,7 +866,7 @@ static void *drm_thread(void *arg)
             draw_update = 0;
         }
         pthread_mutex_unlock(&draw_mutex);
-        usleep(10000);
+        usleep(1000);
     }
     return NULL;
 }
@@ -876,14 +876,55 @@ void drm_flush(lv_disp_drv_t *disp_drv, const lv_area_t *area, lv_color_t *color
    /*The most simple case (but also the slowest) to put all pixels to the screen one-by-one*/
     int32_t x;
     int32_t y;
-
+    lv_coord_t w = (area->x2 - area->x1 + 1);
+    lv_coord_t h = (area->y2 - area->y1 + 1);
+#if USE_RGA
+    int wstride = w;
+    int hstride = h;
+    int lcd_ws = lcd_w;
+    int lcd_hs = lcd_h;
+    int format = 0;
+    if(lcd_ws % 32 != 0) {
+        lcd_ws = (lcd_ws + 32) & (~31);
+    }
+    if(lcd_hs % 32 != 0) {
+        lcd_hs = (lcd_hs + 32) & (~31);
+    }
+    if (LV_COLOR_DEPTH == 16) {
+        format = RK_FORMAT_RGB_565;
+    }else if (LV_COLOR_DEPTH == 32) {
+        format = RK_FORMAT_ARGB_8888;
+    }else {
+        format = -1;
+        printf("drm_flush rga not supported format\n");
+        return;
+    }
+#endif
     pthread_mutex_lock(&draw_mutex);
+#if USE_RGA
+    rga_info_t src;
+    rga_info_t dst;
+    int area_w = area->x2 - area->x1 + 1;
+    int area_h = area->y2 - area->y1 + 1;
+    memset(&src, 0, sizeof(rga_info_t));
+    memset(&dst, 0, sizeof(rga_info_t));
+    src.virAddr = color_p;
+    src.mmuFlag = 1;
+    dst.fd = gbo->buf_fd;
+    dst.mmuFlag = 1;
+    rga_set_rect(&src.rect, 0, 0, area_w, area_h, wstride, hstride, format);
+    rga_set_rect(&dst.rect, area->x1, area->y1, area_w, area_h, lcd_ws, lcd_hs, format);
+    int ret = c_RkRgaBlit(&src, &dst, NULL);
+    if (ret)
+        printf("c_RkRgaBlit2 error : %s\n", strerror(errno));
+#else
     for(y = area->y1; y <= area->y2; y++) {
         int area_w = area->x2 - area->x1 + 1;
         lv_color_t *disp = (lv_color_t*)(drm_buff + (y * lcd_sw + area->x1) * 4);
         memcpy(disp, color_p, area_w * 4);
         color_p += area_w;
     }
+#endif
     draw_update = 1;
     pthread_mutex_unlock(&draw_mutex);
     /*IMPORTANT!!!
