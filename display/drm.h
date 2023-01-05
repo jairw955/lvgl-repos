@@ -29,6 +29,11 @@ extern "C" {
 #include "lvgl/lvgl.h"
 #endif
 
+#if USE_RGA
+#include <rga/im2d.h>
+#include <rga/rga.h>
+#include <rga/RgaApi.h>
+#endif
 /*********************
  *      DEFINES
  *********************/
