@@ -97,6 +97,7 @@ static pthread_t drm_thread_pid;
 static pthread_mutex_t draw_mutex;
 static int draw_update = 0;
 static struct drm_bo *gbo;
+static struct drm_bo *vop_buf[2];
 
 struct device *pdev;
 
@@ -859,14 +860,47 @@ void getdrmresolve(int *w, int *h)
 
 static void *drm_thread(void *arg)
 {
+#define MIN_TICK    16 // 60 FPS
+    struct drm_bo *bo;
+    uint32_t tick = 0, ts;
+#if USE_RGA
+    rga_info_t src;
+    rga_info_t dst;
+    int ret;
+#endif
+
     while (!quit) {
+        ts = lv_tick_get();
+        if ((ts - tick) < MIN_TICK) {
+            usleep(5000);
+            continue;
+        }
+        tick = ts;
         pthread_mutex_lock(&draw_mutex);
         if (draw_update) {
-            setdrmdisp(gbo);
+            bo = (bo == vop_buf[0]) ? vop_buf[1] : vop_buf[0];
+
+#if USE_RGA
+            memset(&src, 0, sizeof(rga_info_t));
+            memset(&dst, 0, sizeof(rga_info_t));
+            src.fd = gbo->buf_fd;
+            src.mmuFlag = 1;
+            dst.fd = bo->buf_fd;
+            dst.mmuFlag = 1;
+            rga_set_rect(&src.rect, 0, 0, lcd_w, lcd_h,
+                         lcd_sw, lcd_h, RK_FORMAT_BGRA_8888);
+            rga_set_rect(&dst.rect, 0, 0, lcd_w, lcd_h,
+                         lcd_sw, lcd_h, RK_FORMAT_BGRA_8888);
+            ret = c_RkRgaBlit(&src, &dst, NULL);
+            if (ret)
+                printf("c_RkRgaBlit error : %s\n", strerror(errno));
+#else
+            memcpy(bo->ptr, gbo->ptr, bo->size);
+#endif
+            setdrmdisp(bo);
             draw_update = 0;
         }
         pthread_mutex_unlock(&draw_mutex);
-        usleep(1000);
     }
     return NULL;
 }
@@ -893,7 +927,7 @@ void drm_flush(lv_disp_drv_t *disp_drv, const lv_area_t *area, lv_color_t *color
     if (LV_COLOR_DEPTH == 16) {
         format = RK_FORMAT_RGB_565;
     }else if (LV_COLOR_DEPTH == 32) {
-        format = RK_FORMAT_ARGB_8888;
+        format = RK_FORMAT_BGRA_8888;
     }else {
         format = -1;
         printf("drm_flush rga not supported format\n");
@@ -938,8 +972,14 @@ void disp_init(void)
     drm_init(32);
     getdrmresolve(&lcd_w, &lcd_h);
     gbo = malloc_drm_bo(lcd_w, lcd_h, DRM_FORMAT_ARGB8888);
+    vop_buf[0] = malloc_drm_bo(lcd_w, lcd_h, DRM_FORMAT_ARGB8888);
+    vop_buf[1] = malloc_drm_bo(lcd_w, lcd_h, DRM_FORMAT_ARGB8888);
     drm_buff = gbo->ptr;
     lcd_sw = gbo->pitch / 4;
+
+#if USE_RGA
+    c_RkRgaInit();
+#endif
 
     printf("DRM subsystem and buffer mapped successfully\n");
 }
