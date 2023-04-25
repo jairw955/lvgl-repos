@@ -169,7 +169,7 @@ static struct drm_bo *
 bo_create(struct device *dev, int width, int height, int format)
 {
     struct drm_mode_create_dumb arg = {
-        .bpp = 32,
+        .bpp = LV_COLOR_DEPTH,
         .width = ALIGN(width, 16),
         .height = ALIGN(height, 16),
     };
@@ -954,8 +954,8 @@ void drm_flush(lv_disp_drv_t *disp_drv, const lv_area_t *area, lv_color_t *color
 #else
     for(y = area->y1; y <= area->y2; y++) {
         int area_w = area->x2 - area->x1 + 1;
-        lv_color_t *disp = (lv_color_t*)(drm_buff + (y * lcd_sw + area->x1) * 4);
-        memcpy(disp, color_p, area_w * 4);
+        lv_color_t *disp = (lv_color_t*)(drm_buff + (y * lcd_sw + area->x1) * (LV_COLOR_DEPTH >> 3));
+        memcpy(disp, color_p, area_w * (LV_COLOR_DEPTH >> 3));
         color_p += area_w;
     }
 #endif
@@ -968,14 +968,21 @@ void drm_flush(lv_disp_drv_t *disp_drv, const lv_area_t *area, lv_color_t *color
 
 void disp_init(void)
 {
+    int format = 0;
     /*You code here*/
     drm_init(32);
     getdrmresolve(&lcd_w, &lcd_h);
-    gbo = malloc_drm_bo(lcd_w, lcd_h, DRM_FORMAT_ARGB8888);
-    vop_buf[0] = malloc_drm_bo(lcd_w, lcd_h, DRM_FORMAT_ARGB8888);
-    vop_buf[1] = malloc_drm_bo(lcd_w, lcd_h, DRM_FORMAT_ARGB8888);
+    printf("%s bit depth %d\n", __func__, LV_COLOR_DEPTH);
+    if (LV_COLOR_DEPTH == 16) {
+        format = DRM_FORMAT_RGB565;
+    } else {
+        format = DRM_FORMAT_ARGB8888;
+    }
+    gbo = malloc_drm_bo(lcd_w, lcd_h, format);
+    vop_buf[0] = malloc_drm_bo(lcd_w, lcd_h, format);
+    vop_buf[1] = malloc_drm_bo(lcd_w, lcd_h, format);
     drm_buff = gbo->ptr;
-    lcd_sw = gbo->pitch / 4;
+    lcd_sw = gbo->pitch / (LV_COLOR_DEPTH >> 3);
 
 #if USE_RGA
     c_RkRgaInit();
