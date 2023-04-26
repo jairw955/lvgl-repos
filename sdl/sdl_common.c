@@ -36,6 +36,7 @@ static char buf[KEYBOARD_BUFFER_SIZE];
 /**********************
  *   GLOBAL FUNCTIONS
  **********************/
+extern int monitor_rotated(void);
 /**
  * Get the current position and state of the mouse
  * @param indev_drv pointer to the related input device driver
@@ -111,6 +112,21 @@ int quit_filter(void * userdata, SDL_Event * event)
 
 void mouse_handler(SDL_Event * event)
 {
+    int rotated = monitor_rotated();
+    int16_t x = -1, y = -1;
+    int16_t hor_res, ver_res;
+
+    if (rotated == LV_DISP_ROT_90 ||
+        rotated == LV_DISP_ROT_270)
+    {
+        hor_res = LV_VER_RES;
+        ver_res = LV_HOR_RES;
+    }
+    else
+    {
+        hor_res = LV_HOR_RES;
+        ver_res = LV_VER_RES;
+    }
     switch(event->type) {
         case SDL_MOUSEBUTTONUP:
             if(event->button.button == SDL_BUTTON_LEFT)
@@ -119,31 +135,54 @@ void mouse_handler(SDL_Event * event)
         case SDL_MOUSEBUTTONDOWN:
             if(event->button.button == SDL_BUTTON_LEFT) {
                 left_button_down = true;
-                last_x = event->motion.x / SDL_ZOOM;
-                last_y = event->motion.y / SDL_ZOOM;
+                x = event->motion.x / SDL_ZOOM;
+                y = event->motion.y / SDL_ZOOM;
             }
             break;
         case SDL_MOUSEMOTION:
-            last_x = event->motion.x / SDL_ZOOM;
-            last_y = event->motion.y / SDL_ZOOM;
+            x = event->motion.x / SDL_ZOOM;
+            y = event->motion.y / SDL_ZOOM;
             break;
 
         case SDL_FINGERUP:
             left_button_down = false;
-            last_x = LV_HOR_RES * event->tfinger.x / SDL_ZOOM;
-            last_y = LV_VER_RES * event->tfinger.y / SDL_ZOOM;
+            x = hor_res * event->tfinger.x / SDL_ZOOM;
+            y = ver_res * event->tfinger.y / SDL_ZOOM;
             break;
         case SDL_FINGERDOWN:
             left_button_down = true;
-            last_x = LV_HOR_RES * event->tfinger.x / SDL_ZOOM;
-            last_y = LV_VER_RES * event->tfinger.y / SDL_ZOOM;
+            x = hor_res * event->tfinger.x / SDL_ZOOM;
+            y = ver_res * event->tfinger.y / SDL_ZOOM;
             break;
         case SDL_FINGERMOTION:
-            last_x = LV_HOR_RES * event->tfinger.x / SDL_ZOOM;
-            last_y = LV_VER_RES * event->tfinger.y / SDL_ZOOM;
+            x = hor_res * event->tfinger.x / SDL_ZOOM;
+            y = ver_res * event->tfinger.y / SDL_ZOOM;
             break;
     }
 
+    if ((x == -1) && (y == -1))
+        return;
+
+    switch (rotated)
+    {
+    case LV_DISP_ROT_NONE:
+    default:
+        last_x = x;
+        last_y = y;
+        break;
+    case LV_DISP_ROT_90:
+        last_x = y;
+        last_y = LV_VER_RES - x;
+        break;
+    case LV_DISP_ROT_180:
+        last_x = LV_HOR_RES - x;
+        last_y = LV_VER_RES - y;
+        break;
+    case LV_DISP_ROT_270:
+        last_x = LV_HOR_RES - y;
+        last_y = x;
+        break;
+    }
 }
 
 

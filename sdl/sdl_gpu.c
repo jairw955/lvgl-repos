@@ -49,8 +49,11 @@ typedef struct {
     lv_draw_sdl_drv_param_t drv_param;
     lv_coord_t hor_res;
     lv_coord_t ver_res;
+    lv_coord_t d_hor_res;
+    lv_coord_t d_ver_res;
     SDL_Window * window;
     SDL_Texture * texture;
+    int rotated;
 }monitor_t;
 
 /**********************
@@ -92,17 +95,20 @@ void sdl_init(void)
 
 void sdl_disp_drv_init(lv_disp_drv_t * disp_drv, lv_coord_t hor_res, lv_coord_t ver_res)
 {
+    int rotated = disp_drv->rotated <= LV_DISP_ROT_270 ? disp_drv->rotated : LV_DISP_ROT_NONE;
     monitor_t *m = lv_mem_alloc(sizeof(monitor_t));
     m->hor_res = hor_res;
     m->ver_res = ver_res;
+    m->rotated = rotated;
     window_create(m);
     hor_res = m->hor_res;
     ver_res = m->ver_res;
     lv_disp_drv_init(disp_drv);
     disp_drv->direct_mode = 1;
     disp_drv->flush_cb = monitor_flush;
-    disp_drv->hor_res = hor_res;
-    disp_drv->ver_res = ver_res;
+    disp_drv->hor_res = m->d_hor_res;
+    disp_drv->ver_res = m->d_ver_res;
+    disp_drv->rotated = LV_DISP_ROT_NONE;
     lv_disp_draw_buf_t *disp_buf = lv_mem_alloc(sizeof(lv_disp_draw_buf_t));
     lv_disp_draw_buf_init(disp_buf, m->texture, NULL, hor_res * ver_res);
     disp_drv->draw_buf = disp_buf;
@@ -143,14 +149,25 @@ void sdl_display_flush(lv_disp_drv_t * disp_drv, const lv_area_t * area, lv_colo
 void sdl_display_resize(lv_disp_t *disp, int width, int height)
 {
     lv_disp_drv_t *driver = disp->driver;
+    monitor_t *m = (monitor_t *)driver->user_data;
     SDL_Renderer *renderer = ((lv_draw_sdl_drv_param_t *) driver->user_data)->renderer;
     if (driver->draw_buf->buf1) {
         SDL_DestroyTexture(driver->draw_buf->buf1);
     }
-    SDL_Texture *texture = lv_draw_sdl_create_screen_texture(renderer, width, height);
+    if (m->rotated == LV_DISP_ROT_90 ||
+        m->rotated == LV_DISP_ROT_270) {
+        m->d_hor_res = height;
+        m->d_ver_res = width;
+    } else {
+        m->d_hor_res = width;
+        m->d_ver_res = height;
+    }
+    m->hor_res = width;
+    m->ver_res = height;
+    SDL_Texture *texture = lv_draw_sdl_create_screen_texture(renderer, m->d_hor_res, m->d_ver_res);
     lv_disp_draw_buf_init(driver->draw_buf, texture, NULL, width * height);
-    driver->hor_res = (lv_coord_t) width;
-    driver->ver_res = (lv_coord_t) height;
+    driver->hor_res = (lv_coord_t) m->d_hor_res;
+    driver->ver_res = (lv_coord_t) m->d_ver_res;
     SDL_RendererInfo renderer_info;
     SDL_GetRendererInfo(renderer, &renderer_info);
     SDL_assert(renderer_info.flags & SDL_RENDERER_TARGETTEXTURE);
@@ -232,6 +249,20 @@ static void sdl_event_handler(lv_timer_t * t)
     }
 }
 
+int monitor_rotated(void)
+{
+    int rotated = LV_DISP_ROT_NONE;
+
+    lv_disp_t *cur = lv_disp_get_next(NULL);
+    if (cur) {
+        lv_disp_t * tmp = cur;
+        monitor_t * m = tmp->driver->user_data;
+        rotated = m->rotated;
+    }
+
+    return rotated;
+}
+
 static void monitor_sdl_clean_up(void)
 {
     for (lv_disp_t *cur = lv_disp_get_next(NULL); cur; ) {
@@ -257,14 +288,23 @@ static void window_create(monitor_t * m)
         m->ver_res = rect.h;
     }
 
+    if (m->rotated == LV_DISP_ROT_90 ||
+        m->rotated == LV_DISP_ROT_270) {
+        m->d_hor_res = m->ver_res;
+        m->d_ver_res = m->hor_res;
+    } else {
+        m->d_hor_res = m->hor_res;
+        m->d_ver_res = m->ver_res;
+    }
+
     m->window = SDL_CreateWindow("TFT Simulator",
                               SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
                               m->hor_res * SDL_ZOOM, m->ver_res * SDL_ZOOM,
-                              SDL_WINDOW_RESIZABLE);
+                              SDL_WINDOW_FULLSCREEN);
 
     m->drv_param.renderer = SDL_CreateRenderer(m->window, -1, SDL_RENDERER_ACCELERATED);
 
-    m->texture = lv_draw_sdl_create_screen_texture(m->drv_param.renderer, m->hor_res, m->ver_res);
+    m->texture = lv_draw_sdl_create_screen_texture(m->drv_param.renderer, m->d_hor_res, m->d_ver_res);
     /* For first frame */
     SDL_SetRenderTarget(m->drv_param.renderer, m->texture);
 }
@@ -274,6 +314,7 @@ static void window_update(lv_disp_drv_t *disp_drv, void * buf)
     SDL_Renderer *renderer = ((lv_draw_sdl_drv_param_t *) disp_drv->user_data)->renderer;
     monitor_t *m = (monitor_t *)disp_drv->user_data;
     SDL_Texture *texture = buf;
+    SDL_Rect dst;
     SDL_SetRenderTarget(renderer, NULL);
     SDL_RenderClear(renderer);
 #if LV_COLOR_SCREEN_TRANSP
@@ -283,10 +324,14 @@ static void window_update(lv_disp_drv_t *disp_drv, void * buf)
     SDL_RenderDrawRect(renderer, &r);
 #endif
 
+    dst.x = (m->hor_res - m->d_hor_res) / 2;
+    dst.y = (m->ver_res - m->d_ver_res) / 2;
+    dst.w = m->d_hor_res;
+    dst.h = m->d_ver_res;
     /*Update the renderer with the texture containing the rendered image*/
     SDL_SetTextureBlendMode(texture, SDL_BLENDMODE_BLEND);
     SDL_RenderSetClipRect(renderer, NULL);
-    SDL_RenderCopy(renderer, texture, NULL, NULL);
+    SDL_RenderCopyEx(renderer, texture, NULL, &dst, 90.0 * m->rotated, NULL, SDL_FLIP_NONE);
     SDL_RenderPresent(renderer);
     SDL_SetRenderTarget(renderer, texture);
 }
