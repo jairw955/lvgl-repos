@@ -611,9 +611,11 @@ static scene_dsc_t scenes[] = {
     {.name = "Text medium",                  .weight = 30, .create_cb = txt_medium_cb},
     {.name = "Text large",                   .weight = 20, .create_cb = txt_large_cb},
 
+#if 0
     {.name = "Text small compressed",        .weight = 3, .create_cb = txt_small_compr_cb},
     {.name = "Text medium compressed",       .weight = 5, .create_cb = txt_medium_compr_cb},
     {.name = "Text large compressed",        .weight = 10, .create_cb = txt_large_compr_cb},
+#endif
 
     {.name = "Line",                         .weight = 10, .create_cb = line_cb},
 #if 0
