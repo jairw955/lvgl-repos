@@ -55,6 +55,12 @@ endif()
 if (LV_USE_GPU_SDL)
     add_definitions(-DLV_USE_GPU_SDL)
 endif()
+if (LV_COLOR_16_SWAP)
+    add_definitions(-DLV_COLOR_16_SWAP=1)
+endif()
+if (LV_COLOR_DEPTH)
+    add_definitions(-DLV_COLOR_DEPTH=${LV_COLOR_DEPTH})
+endif()
 
 target_compile_definitions(
   lvgl PUBLIC $<$<BOOL:${LV_LVGL_H_INCLUDE_SIMPLE}>:LV_LVGL_H_INCLUDE_SIMPLE>
