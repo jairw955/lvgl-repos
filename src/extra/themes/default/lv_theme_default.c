@@ -783,6 +783,19 @@ static void theme_apply(lv_theme_t * th, lv_obj_t * obj)
 
 #if LV_USE_BTNMATRIX
     else if(lv_obj_check_type(obj, &lv_btnmatrix_class)) {
+#if LV_USE_INPUTBOX
+        if(lv_obj_check_type(lv_obj_get_parent(obj), &lv_inputbox_class)) {
+            lv_obj_add_style(obj, &styles->msgbox_btn_bg, 0);
+            lv_obj_add_style(obj, &styles->pad_gap, 0);
+            lv_obj_add_style(obj, &styles->btn, LV_PART_ITEMS);
+            lv_obj_add_style(obj, &styles->pressed, LV_PART_ITEMS | LV_STATE_PRESSED);
+            lv_obj_add_style(obj, &styles->disabled, LV_PART_ITEMS | LV_STATE_DISABLED);
+            lv_obj_add_style(obj, &styles->bg_color_primary, LV_PART_ITEMS | LV_STATE_CHECKED);
+            lv_obj_add_style(obj, &styles->bg_color_primary_muted, LV_PART_ITEMS | LV_STATE_FOCUS_KEY);
+            lv_obj_add_style(obj, &styles->bg_color_secondary_muted, LV_PART_ITEMS | LV_STATE_EDITED);
+            return;
+        }
+#endif
 #if LV_USE_MSGBOX
         if(lv_obj_check_type(lv_obj_get_parent(obj), &lv_msgbox_class)) {
             lv_obj_add_style(obj, &styles->msgbox_btn_bg, 0);
@@ -1105,6 +1118,11 @@ static void theme_apply(lv_theme_t * th, lv_obj_t * obj)
     }
 #endif
 #if LV_USE_MSGBOX
+    else if(lv_obj_check_type(obj, &lv_inputbox_class)) {
+        lv_obj_add_style(obj, &styles->card, 0);
+        lv_obj_add_style(obj, &styles->msgbox_bg, 0);
+        return;
+    }
     else if(lv_obj_check_type(obj, &lv_msgbox_class)) {
         lv_obj_add_style(obj, &styles->card, 0);
         lv_obj_add_style(obj, &styles->msgbox_bg, 0);
