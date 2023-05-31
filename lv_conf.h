@@ -535,6 +535,8 @@
 
 #define LV_USE_IMGBTN     1
 
+#define LV_USE_INPUTBOX   1
+
 #define LV_USE_KEYBOARD   1
 
 #define LV_USE_LED        1
