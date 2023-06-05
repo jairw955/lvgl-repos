@@ -60,7 +60,7 @@ static lv_lru_item_t * lv_lru_pop_or_create_item(lv_lru_t * cache);
  **********************/
 
 /* error helpers */
-#define error_for(conditions, error)  if(conditions) {return error;}
+#define error_for(conditions, error)  if(conditions) {LV_LOG_ERROR(#error);return error;}
 #define test_for_missing_cache()      error_for(!cache, LV_LRU_MISSING_CACHE)
 #define test_for_missing_key()        error_for(!key, LV_LRU_MISSING_KEY)
 #define test_for_missing_value()      error_for(!value || value_length == 0, LV_LRU_MISSING_VALUE)
