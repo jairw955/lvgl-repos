@@ -467,22 +467,78 @@ drm_plane_is_overlay(struct device *dev, int plane_id)
     return type == DRM_PLANE_TYPE_OVERLAY;
 }
 
+int
+drm_plane_is_cursor(struct device *dev, int plane_id)
+{
+    drmModeObjectPropertiesPtr props;
+    drmModePropertyPtr prop;
+    unsigned int i;
+    int type = 0;
+
+    props = drmModeObjectGetProperties(dev->fd, plane_id,
+                                       DRM_MODE_OBJECT_PLANE);
+    if (!props)
+        return 0;
+
+    for (i = 0; i < props->count_props; i++) {
+        prop = drmModeGetProperty(dev->fd, props->props[i]);
+        if (prop && !strcmp(prop->name, "type"))
+            type = props->prop_values[i];
+        drmModeFreeProperty(prop);
+    }
+    DRM_DEBUG("Plane: %d, type: %d\n", plane_id, type);
+
+    drmModeFreeObjectProperties(props);
+    return type == DRM_PLANE_TYPE_CURSOR;
+}
+
 static drmModePlanePtr
 drm_get_plane(struct device *dev, int plane_id, int pipe)
 {
     drmModePlanePtr plane;
-
+    char* set_plane;
     plane = drmModeGetPlane(dev->fd, plane_id);
     if (!plane)
         return NULL;
 
     DRM_DEBUG("Check plane: %d, possible_crtcs: %x\n", plane_id,
               plane->possible_crtcs);
-    if (drm_plane_is_primary(dev, plane_id)) {
-        if (plane->possible_crtcs & (1 << pipe))
-            return plane;
+    set_plane = getenv("LV_DRIVERS_SET_PLANE");
+    if (set_plane == NULL) {
+        printf("LV_DRIVERS_SET_PLANE not be set, use DRM_PLANE_TYPE_PRIMARY\n");
+        if (drm_plane_is_primary(dev, plane_id)) {
+            if (plane->possible_crtcs & (1 << pipe))
+                return plane;
+        }
+        goto end;
+    }
+    if (!strcmp("OVERLAY", set_plane)) {
+        printf("LV_DRIVERS_SET_PLANE = DRM_PLANE_TYPE_OVERLAY\n");
+        if (drm_plane_is_overlay(dev, plane_id)) {
+            if (plane->possible_crtcs & (1 << pipe))
+                return plane;
+        }
+    } else if (!strcmp("PRIMARY", set_plane)) {
+        printf("LV_DRIVERS_SET_PLANE = DRM_PLANE_TYPE_PRIMARY\n");
+        if (drm_plane_is_primary(dev, plane_id)) {
+            if (plane->possible_crtcs & (1 << pipe))
+                return plane;
+        }
+    } else if (!strcmp("CURSOR", set_plane)) {
+        printf("LV_DRIVERS_SET_PLANE = DRM_PLANE_TYPE_CURSOR\n");
+        if (drm_plane_is_cursor(dev, plane_id)) {
+            if (plane->possible_crtcs & (1 << pipe))
+                return plane;
+        }
+    } else {
+        printf("LV_DRIVERS_SET_PLANE set err, use DRM_PLANE_TYPE_PRIMARY\n");
+        if (drm_plane_is_primary(dev, plane_id)) {
+            if (plane->possible_crtcs & (1 << pipe))
+                return plane;
+        }
     }
 
+end:
     drmModeFreePlane(plane);
     return NULL;
 }
