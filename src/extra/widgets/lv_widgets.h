@@ -26,6 +26,7 @@ extern "C" {
 #include "meter/lv_meter.h"
 #include "spinbox/lv_spinbox.h"
 #include "spinner/lv_spinner.h"
+#include "stiker_matrix/lv_stiker_matrix.h"
 #include "tabview/lv_tabview.h"
 #include "tileview/lv_tileview.h"
 #include "win/lv_win.h"
