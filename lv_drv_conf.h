@@ -94,6 +94,10 @@
 # define USE_SDL_GPU 0
 #endif
 
+#ifndef USE_SDL_OPENGL
+# define USE_SDL_OPENGL 0
+#endif
+
 #if USE_SDL || USE_SDL_GPU
 //#  define SDL_HOR_RES     720
 //#  define SDL_VER_RES     1280

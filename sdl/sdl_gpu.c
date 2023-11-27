@@ -35,6 +35,8 @@
 #include <lvgl/src/draw/sdl/lv_draw_sdl.h>
 #include SDL_INCLUDE_PATH
 
+#include "gl/gl.h"
+
 /*********************
  *      DEFINES
  *********************/
@@ -53,6 +55,9 @@ typedef struct {
     lv_coord_t d_ver_res;
     SDL_Window * window;
     SDL_Texture * texture;
+#if USE_SDL_OPENGL
+    SDL_GLContext context;
+#endif
     int rotated;
 }monitor_t;
 
@@ -279,6 +284,9 @@ static void monitor_sdl_clean_up(void)
 
 static void window_create(monitor_t * m)
 {
+#if USE_SDL_OPENGL
+    SDL_GLContext previousContext;
+#endif
 //    SDL_SetHint( SDL_HINT_RENDER_SCALE_QUALITY, "1");
     SDL_Rect rect;
 
@@ -300,21 +308,36 @@ static void window_create(monitor_t * m)
     m->window = SDL_CreateWindow("TFT Simulator",
                               SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
                               m->hor_res * SDL_ZOOM, m->ver_res * SDL_ZOOM,
-                              SDL_WINDOW_FULLSCREEN);
+#ifndef SDL_DIS_FULLSCREEN
+                              SDL_WINDOW_FULLSCREEN |
+#endif
+                              SDL_WINDOW_OPENGL);
 
     m->drv_param.renderer = SDL_CreateRenderer(m->window, -1, SDL_RENDERER_ACCELERATED);
 
     m->texture = lv_draw_sdl_create_screen_texture(m->drv_param.renderer, m->d_hor_res, m->d_ver_res);
     /* For first frame */
     SDL_SetRenderTarget(m->drv_param.renderer, m->texture);
+
+#if USE_SDL_OPENGL
+    previousContext = SDL_GL_GetCurrentContext();
+    m->context = SDL_GL_CreateContext(m->window);
+    SDL_GL_MakeCurrent(m->window, m->context);
+    lv_gl_ctx_init();
+    SDL_GL_MakeCurrent(m->window, previousContext);
+#endif
 }
 
 static void window_update(lv_disp_drv_t *disp_drv, void * buf)
 {
+#if USE_SDL_OPENGL
+    SDL_GLContext previousContext;
+#endif
     SDL_Renderer *renderer = ((lv_draw_sdl_drv_param_t *) disp_drv->user_data)->renderer;
     monitor_t *m = (monitor_t *)disp_drv->user_data;
     SDL_Texture *texture = buf;
     SDL_Rect dst;
+
     SDL_SetRenderTarget(renderer, NULL);
     SDL_RenderClear(renderer);
 #if LV_COLOR_SCREEN_TRANSP
@@ -329,9 +352,18 @@ static void window_update(lv_disp_drv_t *disp_drv, void * buf)
     dst.w = m->d_hor_res;
     dst.h = m->d_ver_res;
     /*Update the renderer with the texture containing the rendered image*/
+
     SDL_SetTextureBlendMode(texture, SDL_BLENDMODE_BLEND);
     SDL_RenderSetClipRect(renderer, NULL);
     SDL_RenderCopyEx(renderer, texture, NULL, &dst, 90.0 * m->rotated, NULL, SDL_FLIP_NONE);
+#if USE_SDL_OPENGL
+    SDL_RenderFlush(renderer);
+
+    previousContext = SDL_GL_GetCurrentContext();
+    SDL_GL_MakeCurrent(m->window, m->context);
+    lv_gl_render();
+    SDL_GL_MakeCurrent(m->window, previousContext);
+#endif
     SDL_RenderPresent(renderer);
     SDL_SetRenderTarget(renderer, texture);
 }
