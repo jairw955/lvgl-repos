@@ -3,23 +3,24 @@
  *
  */
 
- /* Copy this file as "lv_port_indev.c" and set this value to "1" to enable conten */
+/* Copy this file as "lv_port_indev.c" and set this value to "1" to enable conten */
 
 #include <stdlib.h>
 #include "lvgl.h"
 #include "lv_port_indev.h"
 
-#include "hal/evdev.h"
-#include "hal/key.h"
+#include "evdev.h"
+#include "key.h"
 
-typedef struct _GROUP_NODE {
+typedef struct _GROUP_NODE
+{
     struct _GROUP_NODE *next;
     lv_group_t *group;
 } GROUP_NODE;
 
 static int rot_indev;
-lv_indev_t * indev_touchpad;
-lv_indev_t * indev_key;
+lv_indev_t *indev_touchpad;
+lv_indev_t *indev_key;
 
 GROUP_NODE *group_list = NULL;
 
@@ -34,10 +35,13 @@ lv_group_t *lv_port_indev_group_create(void)
     group_node = (struct _GROUP_NODE *)malloc(sizeof(struct _GROUP_NODE));
     group_node->group = group;
     group_node->next = NULL;
-    if (group_list) {
+    if (group_list)
+    {
         group_node->next = group_list;
         group_list = group_node;
-    } else {
+    }
+    else
+    {
         group_list = group_node;
     }
 
@@ -46,23 +50,32 @@ lv_group_t *lv_port_indev_group_create(void)
 
 void lv_port_indev_group_destroy(lv_group_t *group)
 {
-    if (group_list) {
+    if (group_list)
+    {
         struct _GROUP_NODE *group_node = NULL;
         group_node = group_list;
-        if (group_list->group == group) {
+        if (group_list->group == group)
+        {
             group_list = group_list->next;
-            if (group_list) {
+            if (group_list)
+            {
                 lv_indev_set_group(indev_key, group_list->group);
                 lv_group_set_default(group_list->group);
-            } else {
+            }
+            else
+            {
                 lv_indev_set_group(indev_key, NULL);
                 lv_group_set_default(NULL);
             }
             free(group_node);
-        } else {
-            while (group_node->next) {
+        }
+        else
+        {
+            while (group_node->next)
+            {
                 struct _GROUP_NODE *group_node_next = group_node->next;
-                if (group_node_next->group == group) {
+                if (group_node_next->group == group)
+                {
                     group_node->next = group_node_next->next;
                     free(group_node_next);
                     break;
@@ -96,7 +109,7 @@ void lv_port_indev_init(int rot)
     /*------------------
      * Touchpad
      * -----------------*/
-
+#if USE_EVDEV != 0 || USE_BSD_EVDEV
     /*Initialize your touchpad if you have*/
     evdev_init(rot);
 
@@ -105,7 +118,7 @@ void lv_port_indev_init(int rot)
     indev_drv.type = LV_INDEV_TYPE_POINTER;
     indev_drv.read_cb = evdev_read;
     indev_touchpad = lv_indev_drv_register(&indev_drv);
-
+#endif
 #if USE_KEY
     key_init();
     lv_indev_drv_init(&key_drv);
@@ -115,3 +128,4 @@ void lv_port_indev_init(int rot)
     lv_port_indev_group_create();
 #endif
 }
+

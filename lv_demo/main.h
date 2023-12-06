@@ -7,7 +7,6 @@
 #include <limits.h>
 #include <malloc.h>
 #include <math.h>
-#include <png.h>
 #include <poll.h>
 #include <pthread.h>
 #include <signal.h>
@@ -23,31 +22,24 @@
 #include <time.h>
 #include <unistd.h>
 
-#include <drm_fourcc.h>
-#include <drm_mode.h>
 #include <lvgl/lvgl.h>
-#include <rga/rga.h>
-#include <rga/RgaApi.h>
-#include <rk_mpi.h>
-#include <xf86drm.h>
-#include <xf86drmMode.h>
 
-#include "hal/drm_display.h"
-#include "lvgl/lv_port_disp.h"
-#include "lvgl/lv_port_indev.h"
-#include "sys/timestamp.h"
+#include "lv_port_file.h"
+#include "lv_port_indev.h"
+#include "timestamp.h"
 
 #define ALIGN(x, a)     (((x) + (a - 1)) & ~(a - 1))
 #define FAKE_FD         1234
 
-enum {
+enum
+{
     SCALE_MODE_FILL = 0x0,  // full screen stretch
     SCALE_MODE_CONTAIN,     // keep the scale, The side with the larger ratio
-                            // is aligned with the container, and the other
-                            // side is scaled equally
+    // is aligned with the container, and the other
+    // side is scaled equally
     SCALE_MODE_COVER,       // keep the scale, The side with the smaller ratio
-                            // is aligned with the container, and the other
-                            // side is scaled equally
+    // is aligned with the container, and the other
+    // side is scaled equally
     SCALE_MODE_NONE,
 };
 
@@ -61,6 +53,8 @@ typedef struct
     void *para;
     int rot;
 } rk_lv_img_dsc_t;
+
+int app_disp_rotation(void);
 
 #endif
 

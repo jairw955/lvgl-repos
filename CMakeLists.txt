@@ -1,29 +1,26 @@
 cmake_minimum_required(VERSION 3.8)
 
-project(rk_lv_demo)
+project(lvgl_demo)
 
 add_definitions(-g -D__EXPORTED_HEADERS__)
 
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
-
 include_directories(
-	${PROJECT_SOURCE_DIR}/./
-	${CMAKE_SYSROOT}/usr/include/libdrm/
+	${PROJECT_SOURCE_DIR}/hal/
+	${PROJECT_SOURCE_DIR}/lvgl/
+	${PROJECT_SOURCE_DIR}/sys/
 	${CMAKE_SYSROOT}/usr/include/lvgl/
 	${CMAKE_SYSROOT}/usr/include/lvgl/lv_drivers/
-	${CMAKE_SYSROOT}/usr/include/rockchip/
 	)
 
-aux_source_directory(. SRCS)
-aux_source_directory(./hal SRCS)
-aux_source_directory(./lvgl SRCS)
-aux_source_directory(./sys SRCS)
+if (LV_DRV_USE_SDL_GPU)
+	add_definitions(-DUSE_SDL_GPU=1)
+endif()
+if (LV_DRV_USE_DRM)
+	add_definitions(-DUSE_DRM=1 -DUSE_EVDEV=1)
+endif()
 
-add_executable(${PROJECT_NAME} ${SRCS})
-
-target_link_libraries(${PROJECT_NAME}
-	drm lvgl rga pthread m lvgl_demos lv_drivers
-)
-
-install(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION bin)
+aux_source_directory(${PROJECT_SOURCE_DIR}/hal SRCS)
+aux_source_directory(${PROJECT_SOURCE_DIR}/lvgl SRCS)
+aux_source_directory(${PROJECT_SOURCE_DIR}/sys SRCS)
+add_subdirectory(lv_demo)
 
