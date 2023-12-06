@@ -1,0 +1,12 @@
+[submodule "lv_drivers"]
+	path = lv_drivers
+	url = git@github.com:jairw955/lvgl-repos.git
+	branch = lv_drivers-8.3.0
+[submodule "lvgl"]
+	path = lvgl
+	url = git@github.com:jairw955/lvgl-repos.git
+	branch = lvgl-8.3.0
+[submodule "base_demo"]
+	path = base_demo
+	url = git@github.com:jairw955/lvgl-repos.git
+	branch = base_demo
