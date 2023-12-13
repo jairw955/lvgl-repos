@@ -22,5 +22,10 @@ endif()
 aux_source_directory(${PROJECT_SOURCE_DIR}/hal SRCS)
 aux_source_directory(${PROJECT_SOURCE_DIR}/lvgl SRCS)
 aux_source_directory(${PROJECT_SOURCE_DIR}/sys SRCS)
-add_subdirectory(lv_demo)
+
+if (LV_USE_GALLERY)
+	add_subdirectory(gallery)
+else()
+	add_subdirectory(lv_demo)
+endif()
 
