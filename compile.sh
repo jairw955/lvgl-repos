@@ -7,6 +7,7 @@ demo=
 configure=false
 build=true
 install=false
+ext=
 
 function help(){
     echo -e "$1 <target> <options>"
@@ -16,6 +17,7 @@ function help(){
     echo -e "  -i\t\tinstall(false by default)"
     echo -e "  -a\t\tall, -c -b -i"
     echo -e "  -e\t\tenvironment, lvgl and lv_drivers"
+    echo -e "  -s\t\tdemo select"
     echo -e "  -h\t\tthis help"
     echo -e "Usage:"
     echo -e "$1 lvgl_demo -c -b"
@@ -86,6 +88,10 @@ do
         lvgl=true
         lv_drv=true
         shift 1
+        ;;
+    "-s")
+        ext=$2
+        shift 2
         ;;
     "-h")
         help $0
