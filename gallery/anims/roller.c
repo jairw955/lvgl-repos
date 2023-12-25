@@ -35,6 +35,7 @@ void anim_roller_start(lv_anim_t *a)
     SDL_Rect c;
 
     printf("%s\n", __func__);
+    common_anim_start();
     c.w = lv_obj_get_width(scr);
     c.h = lv_obj_get_height(scr) * 12;
     c.x = 0;
@@ -44,10 +45,6 @@ void anim_roller_start(lv_anim_t *a)
     obj_roller->offset_z = 0.1;
     obj_roller->base.r.y = (crop.h - obj_roller->base.r.h) / 2;
 
-    lv_obj_add_flag(img1, LV_OBJ_FLAG_HIDDEN);
-    lv_obj_add_flag(img2, LV_OBJ_FLAG_HIDDEN);
-    lv_gl_obj_idle(obj_cube);
-    lv_gl_obj_idle(obj_fold);
     lv_gl_obj_ready(obj_roller, 1);
 }
 

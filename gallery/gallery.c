@@ -10,6 +10,7 @@
 #include "anims/fade_slide_out.h"
 #include "anims/fold.h"
 #include "anims/roller.h"
+#include "anims/photo_stream.h"
 #include "anims/slide_out.h"
 
 static char *lyric[] =
@@ -40,6 +41,9 @@ lv_obj_t *slider;
 SDL_Rect crop;
 SDL_Rect view;
 
+lv_obj_t *photo_box;
+lv_obj_t *photos[4];
+
 static lv_anim_t anims[] =
 {
     ANIM_FADE_OUT,
@@ -50,7 +54,9 @@ static lv_anim_t anims[] =
     ANIM_FOLD,
     ANIM_ROLLER,
     ANIM_CUBE_LYRIC,
+    ANIM_PHOTO_STREAM,
 };
+static int anim_cnt = sizeof(anims) / sizeof(anims[0]);
 
 static const char *btnm_map[] = {
     "1", "2", "3", "4", "5", "6", "\n",
@@ -63,6 +69,8 @@ static void event_handler(lv_event_t * e)
     lv_obj_t * obj = lv_event_get_target(e);
     if(code == LV_EVENT_VALUE_CHANGED) {
         uint32_t id = lv_btnmatrix_get_selected_btn(obj);
+        if (id >= anim_cnt)
+            return;
         if (!animing)
         {
             lv_anim_start(&anims[id]);
@@ -158,6 +166,18 @@ static lv_gl_obj_t *utf8_to_obj(lv_gl_obj_t *parent,
     lv_gl_obj_import_img(obj, &img);
 
     return obj;
+}
+
+void common_anim_start(void)
+{
+    lv_obj_add_flag(img1, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_add_flag(img2, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_add_flag(photo_box, LV_OBJ_FLAG_HIDDEN);
+    lv_gl_obj_idle(obj_cube);
+    lv_gl_obj_idle(obj_fold);
+    lv_gl_obj_idle(obj_roller);
+    lv_gl_set_viewport(NULL, NULL);
+    anim_photo_stream_stop();
 }
 
 void gallery(void)
@@ -322,5 +342,20 @@ void gallery(void)
                 (i - lines / 2) * obj_lyrics[i].objs[j]->base.r.h;
         }
     }
+
+    photo_box = lv_obj_create(scr);
+    lv_obj_remove_style_all(photo_box);
+    lv_obj_set_size(photo_box, crop.w, crop.h);
+    lv_obj_add_flag(photo_box, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_clear_flag(photo_box, LV_OBJ_FLAG_SCROLLABLE);
+    for (int i = 0; i < 4; i++)
+    {
+        photos[i] = lv_img_create(photo_box);
+        lv_obj_set_pos(photos[i], 0, 500 * i);
+    }
+    lv_img_set_src(photos[0], &pic1);
+    lv_img_set_src(photos[1], &pic2);
+    lv_img_set_src(photos[2], &pic3);
+    lv_img_set_src(photos[3], &pic4);
 }
 

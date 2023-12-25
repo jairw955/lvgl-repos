@@ -3,12 +3,8 @@
 void anim_fold_start(lv_anim_t *a)
 {
     printf("%s\n", __func__);
-    lv_obj_add_flag(img1, LV_OBJ_FLAG_HIDDEN);
-    lv_obj_add_flag(img2, LV_OBJ_FLAG_HIDDEN);
-    lv_gl_obj_idle(obj_cube);
+    common_anim_start();
     lv_gl_obj_ready(obj_fold, 1);
-    lv_gl_obj_idle(obj_roller);
-    lv_gl_set_viewport(NULL, NULL);
 }
 
 void anim_fold(void *var, int32_t v)

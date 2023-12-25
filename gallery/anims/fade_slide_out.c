@@ -3,11 +3,9 @@
 void anim_fade_slide_out_start(lv_anim_t *a)
 {
     printf("%s\n", __func__);
+    common_anim_start();
     lv_obj_clear_flag(img1, LV_OBJ_FLAG_HIDDEN);
     lv_obj_clear_flag(img2, LV_OBJ_FLAG_HIDDEN);
-    lv_gl_obj_idle(obj_cube);
-    lv_gl_obj_idle(obj_fold);
-    lv_gl_obj_idle(obj_roller);
 }
 
 void anim_fade_slide_out(void *var, int32_t v)

@@ -3,13 +3,10 @@
 void anim_cube_rotate_start(lv_anim_t *a)
 {
     printf("%s\n", __func__);
-    lv_obj_add_flag(img1, LV_OBJ_FLAG_HIDDEN);
-    lv_obj_add_flag(img2, LV_OBJ_FLAG_HIDDEN);
+    common_anim_start();
     lv_gl_obj_set_view_angle(obj_cube, 0, 0, 0);
     lv_gl_obj_set_angle(obj_cube, 0, 0, 0);
     lv_gl_obj_ready(obj_cube, 1);
-    lv_gl_obj_idle(obj_fold);
-    lv_gl_obj_idle(obj_roller);
     lv_gl_set_viewport(NULL, NULL);
 }
 

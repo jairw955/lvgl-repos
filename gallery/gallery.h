@@ -28,6 +28,8 @@ extern lv_obj_t *scr;
 extern lv_obj_t *img1;
 extern lv_obj_t *img2;
 extern lv_obj_t *slider;
+extern lv_obj_t *photo_box;
+extern lv_obj_t *photos[4];
 extern SDL_Rect crop;
 extern SDL_Rect view;
 extern int animing;
@@ -35,7 +37,11 @@ extern int lines;
 
 extern const lv_img_dsc_t pic1;
 extern const lv_img_dsc_t pic2;
+extern const lv_img_dsc_t pic3;
+extern const lv_img_dsc_t pic4;
 extern const lv_img_dsc_t helloworld;
+
+void common_anim_start(void);
 
 #endif
 
