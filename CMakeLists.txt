@@ -25,6 +25,8 @@ aux_source_directory(${PROJECT_SOURCE_DIR}/sys SRCS)
 
 if (LV_USE_GALLERY)
 	add_subdirectory(gallery)
+elseif (LV_USE_AMP_MONITOR)
+	add_subdirectory(amp_monitor)
 else()
 	add_subdirectory(lv_demo)
 endif()
