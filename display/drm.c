@@ -953,7 +953,12 @@ static void *drm_thread(void *arg)
             if (ret)
                 printf("c_RkRgaBlit error : %s\n", strerror(errno));
 #else
-            memcpy(bo->ptr, drm_buff, bo->size);
+            for (int i = 0; i < lcd_h; i++)
+            {
+                memcpy(bo->ptr + i * bo->pitch,
+                       drm_buff + i * lcd_sw * (LV_COLOR_DEPTH >> 3),
+                       lcd_w * (LV_COLOR_DEPTH >> 3));
+            }
 #endif
             setdrmdisp(bo);
             draw_update = 0;
