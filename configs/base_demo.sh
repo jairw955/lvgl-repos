@@ -11,6 +11,24 @@ case $DEMO_SEL in
                      -DLV_DRV_USE_SDL_GPU=y \
                      -DLV_DRV_USE_OPENGL=y"
     ;;
+    amp_monitor)
+    export LVGL_CFG="-DLV_USE_GPU_SDL=y"
+    export LV_DRV_CFG="-DLV_DRV_USE_SDL_GPU=y \
+                       -DLV_DRV_USE_OPENGL=y \
+                       -DLV_DRV_SDL_DIS_FULLSCREEN=y"
+    export DEMO_CFG="-DLV_USE_AMP_MONITOR=y \
+                     -DLV_DRV_USE_SDL_GPU=y \
+                     -DLV_DRV_USE_OPENGL=y"
+    ;;
+    hmi)
+    export LVGL_CFG="-DLV_USE_GPU_SDL=y"
+    export LV_DRV_CFG="-DLV_DRV_USE_SDL_GPU=y \
+                       -DLV_DRV_USE_OPENGL=y \
+                       -DLV_DRV_SDL_DIS_FULLSCREEN=y"
+    export DEMO_CFG="-DLV_USE_HMI=y \
+                     -DLV_DRV_USE_SDL_GPU=y \
+                     -DLV_DRV_USE_OPENGL=y"
+    ;;
     lv_demo)
     export LVGL_CFG="-DLV_USE_GPU_SDL=y \
                      -DLV_USE_DEMO_WIDGETS=1 \
