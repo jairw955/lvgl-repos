@@ -307,7 +307,7 @@ static void draw_img_simple(lv_draw_sdl_ctx_t * ctx, SDL_Texture * texture, cons
     }
     SDL_Rect src_rect, dst_rect;
     calc_draw_part(texture, header, coords, clip, &src_rect, &dst_rect);
-    SDL_RenderCopyEx(ctx->renderer, texture, &src_rect, &dst_rect, draw_dsc->angle, &pivot, SDL_FLIP_NONE);
+    SDL_RenderCopyEx(ctx->renderer, texture, &src_rect, &dst_rect, draw_dsc->angle / 10.0, &pivot, SDL_FLIP_NONE);
     if(draw_dsc->angle != 0) {
         SDL_RenderSetClipRect(ctx->renderer, NULL);
     }
