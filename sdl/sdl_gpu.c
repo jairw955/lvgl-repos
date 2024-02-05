@@ -82,7 +82,7 @@ static volatile bool sdl_inited = false;
 void sdl_init(void)
 {
     /*Initialize the SDL*/
-    SDL_Init(SDL_INIT_VIDEO);
+    SDL_Init(SDL_INIT_VIDEO | SDL_INIT_JOYSTICK);
 
     SDL_SetEventFilter(quit_filter, NULL);
 
