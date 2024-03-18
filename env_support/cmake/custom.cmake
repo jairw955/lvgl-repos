@@ -43,6 +43,7 @@ endif()
 # Include root and optional parent path of LV_CONF_PATH
 target_include_directories(lvgl SYSTEM PUBLIC ${LVGL_ROOT_DIR} ${LV_CONF_DIR})
 
+target_include_directories(lvgl SYSTEM PUBLIC ${CMAKE_SYSROOT}/usr/include/freetype2)
 
 if(NOT LV_CONF_BUILD_DISABLE_THORVG_INTERNAL)
     add_library(lvgl_thorvg ${THORVG_SOURCES})
