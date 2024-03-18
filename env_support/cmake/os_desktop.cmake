@@ -202,6 +202,7 @@ endif()
 include_directories(${CONF_INC_DIR} ${LVGL_ROOT_DIR})
 
 target_include_directories(lvgl SYSTEM PUBLIC ${LVGL_ROOT_DIR} ${CONF_INC_DIR} ${CMAKE_CURRENT_BINARY_DIR})
+target_include_directories(lvgl SYSTEM PUBLIC ${CMAKE_SYSROOT}/usr/include/freetype2)
 
 # Propagate the compiler definitions set on LVGL to the rest of the targets
 # mentioned in this file
