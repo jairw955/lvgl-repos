@@ -126,17 +126,21 @@ echo -e "build\t\t:$build"
 echo -e "install\t\t:$install"
 
 if [ "$demo" != "" ];then
-    if [ ! -e configs/${demo}.sh ];then
-        echo "configs/${demo}.sh no found"
+    if [ -e configs/${demo}.in ];then
+        source configs/${demo}.in
+    elif [ -e ${demo}/config.in ];then
+        source ${demo}/config.in
+    else
+        echo "config file no found"
         exit
     fi
-    source configs/${demo}.sh
 else
-    source configs/lvgl.sh
+    source configs/lvgl.in
 fi
 
 if [ "$lvgl" == "true" ];then
     if [ "$configure" == "true" ];then
+        echo "LVGL_CFG: "${LVGL_CFG}
         reconfigure_target lvgl ${LVGL_CFG}
     fi
     if [ "$build" == "true" ];then
@@ -149,6 +153,7 @@ fi
 
 if [ "$lv_drv" == "true" ];then
     if [ "$configure" == "true" ];then
+        echo "LV_DRV_CFG: "${LV_DRV_CFG}
         reconfigure_target lv_drivers ${LV_DRV_CFG}
     fi
     if [ "$build" == "true" ];then
@@ -161,6 +166,7 @@ fi
 
 if [ "$demo" != "" ];then
     if [ "$configure" == "true" ];then
+        echo "DEMO_CFG: "${DEMO_CFG}
         reconfigure_target ${DEMO} ${DEMO_CFG}
     fi
     if [ "$build" == "true" ];then
