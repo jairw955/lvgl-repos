@@ -1,5 +1,6 @@
 #include "gallery.h"
 
+#ifdef USE_OPENGL
 void anim_cube_flip_start(lv_anim_t *a);
 void anim_cube_flip(void *var, int32_t v);
 void anim_cube_flip_end(lv_anim_t *a);
@@ -44,31 +45,68 @@ static lv_anim_t sub_anims[] =
     }
 };
 
+SDL_Rect cube_view;
+
 #define ZOOM_IN_SIZE        40
 #define ZOOM_IN     do { \
     if (pos < ZOOM_IN_SIZE) \
     { \
-        obj_cube->base.r.w = crop.w - pos; \
+        obj_cube->base.r.w = cube_view.w * 0.57 - pos; \
     } \
     else if (pos > (90 - ZOOM_IN_SIZE)) \
     { \
-        obj_cube->base.r.w = crop.w - (90 - pos); \
+        obj_cube->base.r.w = cube_view.w * 0.57 - (90 - pos); \
     } \
     else \
     { \
-        obj_cube->base.r.w = crop.w - ZOOM_IN_SIZE; \
+        obj_cube->base.r.w = cube_view.w * 0.57 - ZOOM_IN_SIZE; \
     } \
-    obj_cube->scale = (float)obj_cube->base.r.w / view.w; \
+    obj_cube->scale.x = (float)obj_cube->base.r.w / cube_view.w; \
+    obj_cube->scale.y = obj_cube->scale.x; \
+    obj_cube->scale.z = obj_cube->scale.x; \
 } while (0);
+
+void anim_cube_render(void)
+{
+    /* render to screen */
+    lv_gl_set_fb(NULL);
+    lv_gl_obj_render(obj_cube);
+}
+
+void anim_cube_start(lv_anim_t *a)
+{
+    int side;
+
+    common_anim_start();
+    lv_gl_obj_set_view_angle(obj_cube, 0, 0, 0);
+    lv_gl_obj_set_angle(obj_cube, 0, 0, 0);
+
+    /*
+     * the distance from the center of the cube to any corner is
+     * sqrt(3) / 2 * a, the a is the edge length, and a = 2.0
+     * So in order to ensure that the cube will not exceed
+     * the coordinate range no matter how it is rotated,
+     * let's limit it to 0.57a, 0.57 * 2.0 * sqrt(3) / 2 = 0.9873
+     */
+    if (view.w > view.h)
+        side = view.h / 0.57 + 2;
+    else
+        side = view.w / 0.57 + 2;
+    cube_view.x = (view.w - side) / 2;
+    cube_view.y = (side - view.h) / 2;
+    cube_view.w = side;
+    cube_view.h = side;
+    printf("%s %d %d %d %d\n", __func__,
+        cube_view.x, cube_view.y, cube_view.w, cube_view.h);
+
+    lv_gl_obj_set_viewport(NULL, &cube_view);
+    lv_gl_set_render_cb(anim_cube_render);
+}
 
 void anim_cube_flip_start(lv_anim_t *a)
 {
     printf("%s\n", __func__);
-    common_anim_start();
-    lv_gl_obj_set_view_angle(obj_cube, 0, 0, 0);
-    lv_gl_obj_set_angle(obj_cube, 0, 0, 0);
-    lv_gl_obj_ready(obj_cube, 1);
-    lv_gl_set_viewport(NULL, NULL);
+    anim_cube_start(a);
 }
 
 void anim_cube_flip(void *var, int32_t v)
@@ -99,4 +137,5 @@ void anim_cube_flip_end(lv_anim_t *a)
         lv_slider_set_value(slider, 0, LV_ANIM_ON);
     }
 }
+#endif
 

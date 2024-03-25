@@ -14,13 +14,13 @@ static void update_y(void)
     int32_t y;
     int32_t h;
 
-    for (int i = 0; i < 4; i++)
+    for (int i = 0; i < 6; i++)
     {
         h = lv_obj_get_height(photos[i]);
         y = (img_h + gap_h) * i + timer_ofs + touch_ofs;
         while (y + h > max_y)
             y = -h + (y + h - boundary);
-        lv_obj_set_pos(photos[i], 0, y);
+        lv_obj_set_y(photos[i], y);
     }
 }
 
@@ -73,6 +73,7 @@ void anim_photo_stream_stop(void)
 void anim_photo_stream_start(lv_anim_t *a)
 {
     common_anim_start();
+    lv_obj_clear_flag(anim_area, LV_OBJ_FLAG_HIDDEN);
     lv_obj_clear_flag(photo_box, LV_OBJ_FLAG_HIDDEN);
     lv_obj_add_event_cb(photo_box, touch_handler,
         LV_EVENT_ALL, NULL);
@@ -82,9 +83,9 @@ void anim_photo_stream_start(lv_anim_t *a)
         return;
     }
     timer = lv_timer_create(lv_timer_cb, 10, NULL);
-    /* 4 photos with 3 gaps */
-    max_y = img_h * 4 + gap_h * 3;
-    boundary = (img_h + gap_h) * 4;
+    /* 6 photos with 5 gaps */
+    max_y = img_h * 6 + gap_h * 5;
+    boundary = (img_h + gap_h) * 6;
     printf("max_y %d\n", max_y);
     printf("boundary %d\n", boundary);
 }

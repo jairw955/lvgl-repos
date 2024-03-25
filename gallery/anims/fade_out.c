@@ -4,6 +4,7 @@ void anim_fade_out_start(lv_anim_t *a)
 {
     printf("%s\n", __func__);
     common_anim_start();
+    lv_obj_clear_flag(anim_area, LV_OBJ_FLAG_HIDDEN);
     lv_obj_clear_flag(img1, LV_OBJ_FLAG_HIDDEN);
     lv_obj_clear_flag(img2, LV_OBJ_FLAG_HIDDEN);
 }
