@@ -121,8 +121,10 @@ TMP_Q1      .qn  q14
             v&op&1.32   {reg&_8888_L, reg&_8888_H}, [mem&_ADDR]&wb
         .endif
     .else
-        .if (op == st) && cvt
-            convert     reg, bpp, 1
+        .ifc "&op&", "st"
+            .if cvt
+                convert     reg, bpp, 1
+            .endif
         .endif
         .if len == 7
             v&op&1.32   {reg&_8888_L}, [mem&_ADDR]!
@@ -146,8 +148,10 @@ TMP_Q1      .qn  q14
         .else
             .error "[32bpp]len should be 1~8"
         .endif
-        .if (op == ld) && cvt
-            convert     reg, bpp, 0
+        .ifc "&op&", "ld"
+            .if cvt
+                convert     reg, bpp, 0
+            .endif
         .endif
         .if (wb&1) && (len != 4) && (len != 2) && (len != 1)
             sub         mem&_ADDR, #4*len
@@ -218,8 +222,10 @@ TMP_Q1      .qn  q14
         .error "[24bpp]len should be 1~8"
     .endif
 .elseif bpp == 16
-    .if (op == st) && cvt
-        convert         reg, bpp, 1
+    .ifc "&op&", "st"
+        .if cvt
+            convert         reg, bpp, 1
+        .endif
     .endif
     .if len == 8
         v&op&1.16       {reg&_565}, [mem&_ADDR]&wb
@@ -257,8 +263,10 @@ TMP_Q1      .qn  q14
     .else
         .error "[16bpp]len should be 1~8"
     .endif
-    .if (op == ld) && cvt
-        convert         reg, bpp, 0
+    .ifc "&op&", "ld"
+        .if cvt
+            convert     reg, bpp, 0
+        .endif
     .endif
 .elseif bpp == 8
     .if len == 8
@@ -304,8 +312,10 @@ TMP_Q1      .qn  q14
         .error "[color]len should be 8"
     .endif
 .endif
-.if (op == ld) && cvt && (bpp > 8) && (bpp < 32)
-    vmov.u8             reg&_A, #0xFF
+.ifc "&op&", "ld"
+    .if cvt && (bpp > 8) && (bpp < 32)
+        vmov.u8             reg&_A, #0xFF
+    .endif
 .endif
 .endm
 
@@ -429,7 +439,7 @@ TMP_Q1      .qn  q14
     vsli.8          TMP_Q0, TMP_Q0, #4
     cbz             FG_MASK, 98f
 .endif
-.if mode == normal
+.ifc "&mode&", "normal"
 .if dst_bpp == 32
     cbz             BG_MASK, 97f
     mvns            BG_MASK, BG_MASK
@@ -648,7 +658,7 @@ name&:
 .endm
 
 .macro export_set src, dst, src_bpp, dst_bpp, mode
-.if src == color
+.ifc "&src&", "color"
     export _lv_&src&_blend_to_&dst&_neon, src_bpp, dst_bpp, 0, 0, mode
     export _lv_&src&_blend_to_&dst&_with_opa_neon, src_bpp, dst_bpp, 0, 1, mode
     export _lv_&src&_blend_to_&dst&_with_mask_neon, src_bpp, dst_bpp, 1, 0, mode
