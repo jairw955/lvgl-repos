@@ -103,6 +103,11 @@ lv_display_t * lv_sdl_window_create(int32_t hor_res, int32_t ver_res)
     LV_ASSERT_MALLOC(dsc);
     if(dsc == NULL) return NULL;
 
+    SDL_Rect rect;
+    SDL_GetDisplayBounds(0, &rect);
+    if (!hor_res) hor_res = rect.w;
+    if (!ver_res) ver_res = rect.h;
+
     lv_display_t * disp = lv_display_create(hor_res, ver_res);
     if(disp == NULL) {
         lv_free(dsc);
