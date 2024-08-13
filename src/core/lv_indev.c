@@ -70,13 +70,13 @@ void lv_indev_read_timer_cb(lv_timer_t * timer)
     indev_act = timer->user_data;
 
     /*Read and process all indevs*/
-    if(indev_act->driver->disp == NULL) return; /*Not assigned to any displays*/
+    if(indev_act->driver->disp == NULL) goto end; /*Not assigned to any displays*/
 
     /*Handle reset query before processing the point*/
     indev_proc_reset_query_handler(indev_act);
 
     if(indev_act->proc.disabled ||
-       indev_act->driver->disp->prev_scr != NULL) return; /*Input disabled or screen animation active*/
+       indev_act->driver->disp->prev_scr != NULL) goto end; /*Input disabled or screen animation active*/
     bool continue_reading;
     do {
         /*Read the data*/
@@ -113,6 +113,7 @@ void lv_indev_read_timer_cb(lv_timer_t * timer)
         indev_proc_reset_query_handler(indev_act);
     } while(continue_reading);
 
+end:
     /*End of indev processing, so no act indev*/
     indev_act     = NULL;
     indev_obj_act = NULL;
