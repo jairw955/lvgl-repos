@@ -632,7 +632,11 @@ void rkadk_disp_drv_init(lv_disp_rot_t rotate_disp)
     /*-------------------------
      * Initialize your display
      * -----------------------*/
-    rk_disp_init(rotate_disp);
+    int ret = rk_disp_init(rotate_disp);
+    if(ret == -1) {
+        printf("rk_disp_init is fail\n");
+        return;
+    }
     rk_disp_get_sizes(&lcd_w, &lcd_h, NULL);
     /*-----------------------------
      * Create a buffer for drawing
