@@ -45,12 +45,14 @@ static inline lv_color_t lv_color_make_rounding(uint8_t r, uint8_t g, uint8_t b)
 /**
  * Register the PNG decoder functions in LVGL
  */
-void lv_png_init(void)
+lv_img_decoder_t* lv_png_init(void)
 {
     lv_img_decoder_t * dec = lv_img_decoder_create();
     lv_img_decoder_set_info_cb(dec, decoder_info);
     lv_img_decoder_set_open_cb(dec, decoder_open);
     lv_img_decoder_set_close_cb(dec, decoder_close);
+
+    return dec;
 }
 
 /**********************

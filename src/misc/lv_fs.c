@@ -406,6 +406,19 @@ void lv_fs_drv_register(lv_fs_drv_t * drv_p)
     *new_drv = drv_p;
 }
 
+void lv_fs_drv_unregister(lv_fs_drv_t * drv_p)
+{
+    lv_fs_drv_t **new_drv = _lv_ll_get_head(&LV_GC_ROOT(_lv_fsdrv_ll));
+    while (new_drv) {
+        if (drv_p == *new_drv) {
+            _lv_ll_remove(&LV_GC_ROOT(_lv_fsdrv_ll), new_drv);
+            lv_mem_free(new_drv);
+            break;
+        }
+        new_drv = _lv_ll_get_next(&LV_GC_ROOT(_lv_fsdrv_ll), new_drv);
+    }
+}
+
 lv_fs_drv_t * lv_fs_get_drv(char letter)
 {
     lv_fs_drv_t ** drv;

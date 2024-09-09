@@ -130,6 +130,8 @@ void lv_fs_drv_init(lv_fs_drv_t * drv);
  */
 void lv_fs_drv_register(lv_fs_drv_t * drv);
 
+void lv_fs_drv_unregister(lv_fs_drv_t * drv);
+
 /**
  * Give a pointer to a driver from its letter
  * @param letter    the driver letter
