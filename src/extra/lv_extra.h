@@ -36,6 +36,7 @@ extern "C" {
  * Initialize the extra components
  */
 void lv_extra_init(void);
+void lv_extra_deinit(void);
 
 /**********************
  *      MACROS

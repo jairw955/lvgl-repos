@@ -320,6 +320,13 @@ void lv_disp_remove(lv_disp_t * disp)
     _lv_ll_remove(&LV_GC_ROOT(_lv_disp_ll), disp);
     _lv_ll_clear(&disp->sync_areas);
     if(disp->refr_timer) lv_timer_del(disp->refr_timer);
+
+    lv_disp_drv_t * driver = disp->driver;
+    if((driver != NULL) && (driver->draw_ctx != NULL)) {
+        driver->draw_ctx_deinit(driver, driver->draw_ctx);
+        lv_mem_free(driver->draw_ctx);
+    }
+
     lv_mem_free(disp);
 
     if(was_default) lv_disp_set_default(_lv_ll_get_head(&LV_GC_ROOT(_lv_disp_ll)));

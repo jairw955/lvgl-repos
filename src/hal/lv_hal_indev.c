@@ -98,6 +98,25 @@ lv_indev_t * lv_indev_drv_register(lv_indev_drv_t * driver)
     return indev;
 }
 
+void lv_indev_drv_unregister(lv_indev_drv_t * driver) {
+    lv_indev_t * indev = _lv_ll_get_head(&LV_GC_ROOT(_lv_indev_ll));
+
+    LV_ASSERT_NULL(driver);
+    LV_ASSERT_NULL(indev);
+    while (indev) {
+        if (indev->driver == driver) {
+            if(indev->driver->read_timer) {
+                lv_timer_del(indev->driver->read_timer);
+                indev->driver->read_timer = NULL;
+            }
+            _lv_ll_remove(&LV_GC_ROOT(_lv_indev_ll), indev);
+            lv_mem_free(indev);
+            break;
+        }
+        indev = _lv_ll_get_next(&LV_GC_ROOT(_lv_indev_ll), indev);
+    }
+}
+
 /**
  * Update the driver in run time.
  * @param indev pointer to a input device. (return value of `lv_indev_drv_register`)

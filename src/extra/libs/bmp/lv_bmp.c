@@ -50,13 +50,14 @@ static void decoder_close(lv_img_decoder_t * dec, lv_img_decoder_dsc_t * dsc);
 /**********************
  *   GLOBAL FUNCTIONS
  **********************/
-void lv_bmp_init(void)
+lv_img_decoder_t* lv_bmp_init(void)
 {
     lv_img_decoder_t * dec = lv_img_decoder_create();
     lv_img_decoder_set_info_cb(dec, decoder_info);
     lv_img_decoder_set_open_cb(dec, decoder_open);
     lv_img_decoder_set_read_line_cb(dec, decoder_read_line);
     lv_img_decoder_set_close_cb(dec, decoder_close);
+    return dec;
 }
 
 /**********************
