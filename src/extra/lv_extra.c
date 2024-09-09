@@ -32,6 +32,10 @@
  *   GLOBAL FUNCTIONS
  **********************/
 
+lv_img_decoder_t *lv_bmp_extra = NULL;
+lv_img_decoder_t *lv_sjpeg_extra = NULL;
+lv_img_decoder_t *lv_png_extra = NULL;
+
 void lv_extra_init(void)
 {
 #if LV_USE_FLEX
@@ -67,15 +71,15 @@ void lv_extra_init(void)
 #endif
 
 #if LV_USE_PNG
-    lv_png_init();
+    lv_png_extra = lv_png_init();
 #endif
 
 #if LV_USE_SJPG
-    lv_split_jpeg_init();
+    lv_sjpeg_extra = lv_split_jpeg_init();
 #endif
 
 #if LV_USE_BMP
-    lv_bmp_init();
+    lv_bmp_extra = lv_bmp_init();
 #endif
 
 #if LV_USE_FREETYPE
@@ -85,6 +89,33 @@ void lv_extra_init(void)
 #  else
     lv_freetype_init(0, 0, 0);
 #  endif
+#endif
+}
+
+void lv_extra_deinit(void) {
+#if LV_USE_FREETYPE
+    lv_freetype_destroy();
+#endif
+
+#if LV_USE_BMP
+    if (lv_bmp_extra == NULL) {
+        lv_img_decoder_delete(lv_bmp_extra);
+        lv_bmp_extra = NULL;
+    }
+#endif
+
+#if LV_USE_SJPG
+    if (lv_bmp_extra == NULL) {
+        lv_img_decoder_delete(lv_sjpeg_extra);
+        lv_png_extra = NULL;
+    }
+#endif
+
+#if LV_USE_PNG
+    if (lv_png_extra == NULL) {
+        lv_img_decoder_delete(lv_png_extra);
+        lv_png_extra = NULL;
+    }
 #endif
 }
 

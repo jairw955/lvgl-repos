@@ -27,7 +27,7 @@ extern "C" {
 /**********************
  * GLOBAL PROTOTYPES
  **********************/
-void lv_bmp_init(void);
+lv_img_decoder_t* lv_bmp_init(void);
 
 /**********************
  *      MACROS

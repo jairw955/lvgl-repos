@@ -126,13 +126,15 @@ static void lv_sjpg_free(SJPEG * sjpeg);
 /**********************
  *   GLOBAL FUNCTIONS
  **********************/
-void lv_split_jpeg_init(void)
+lv_img_decoder_t* lv_split_jpeg_init(void)
 {
     lv_img_decoder_t * dec = lv_img_decoder_create();
     lv_img_decoder_set_info_cb(dec, decoder_info);
     lv_img_decoder_set_open_cb(dec, decoder_open);
     lv_img_decoder_set_close_cb(dec, decoder_close);
     lv_img_decoder_set_read_line_cb(dec, decoder_read_line);
+
+    return dec;
 }
 
 /**********************

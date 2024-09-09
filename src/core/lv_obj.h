@@ -201,15 +201,11 @@ typedef struct _lv_obj_t {
  */
 void lv_init(void);
 
-#if LV_ENABLE_GC || !LV_MEM_CUSTOM
-
 /**
  * Deinit the 'lv' library
  * Currently only implemented when not using custom allocators, or GC is enabled.
  */
 void lv_deinit(void);
-
-#endif
 
 /**
  * Returns whether the 'lv' library is currently initialized

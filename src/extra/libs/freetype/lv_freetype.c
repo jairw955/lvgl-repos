@@ -153,9 +153,17 @@ Fail:
 void lv_freetype_destroy(void)
 {
 #if LV_FREETYPE_CACHE_SIZE >= 0
-    FTC_Manager_Done(cache_manager);
+    if (cache_manager != NULL) {
+        LV_LOG_INFO("%s cache_manager:%p\n", cache_manager);
+        FTC_Manager_Done(cache_manager);
+        cache_manager = NULL;
+    }
 #endif
-    FT_Done_FreeType(library);
+    if (library != NULL) {
+        LV_LOG_INFO("%s library:%p\n", library);
+        FT_Done_FreeType(library);
+        library = NULL;
+    }
 }
 
 bool lv_ft_font_init(lv_ft_info_t * info)

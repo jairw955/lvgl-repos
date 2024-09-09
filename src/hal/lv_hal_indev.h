@@ -200,6 +200,7 @@ void lv_indev_drv_init(struct _lv_indev_drv_t * driver);
  */
 lv_indev_t * lv_indev_drv_register(struct _lv_indev_drv_t * driver);
 
+void lv_indev_drv_unregister(lv_indev_drv_t * driver);
 /**
  * Update the driver in run time.
  * @param indev pointer to an input device. (return value of `lv_indev_drv_register`)
