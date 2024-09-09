@@ -103,6 +103,7 @@ static struct drm_bo *gbo;
 static struct drm_bo *vop_buf[2];
 
 struct device *pdev;
+static lv_disp_t * lv_disp_drm;
 
 static int bo_map(struct device *dev, struct drm_bo *bo)
 {
@@ -927,6 +928,7 @@ static void *drm_thread(void *arg)
     rga_info_t dst;
     int ret;
 #endif
+    pthread_setname_np(pthread_self(), "lv_drm");
 
     while (!quit) {
         ts = lv_tick_get();
@@ -1072,6 +1074,33 @@ void disp_init(void)
     printf("DRM subsystem and buffer mapped successfully\n");
 }
 
+void disp_deinit(void)
+{
+    free_drm_bo(vop_buf[1]);
+    free_drm_bo(vop_buf[0]);
+
+#if USE_RGA
+    free_drm_bo(gbo);
+#else
+    if (drm_buff)
+        free(drm_buff);
+#endif
+
+    drm_exit();
+}
+
+void drm_disp_drv_deinit(void) {
+    quit = 1;
+    pthread_join(drm_thread_pid, NULL);
+    pthread_mutex_destroy(&draw_mutex);
+    if (lv_disp_drm != NULL)
+        lv_disp_remove(lv_disp_drm); //align to lv_disp_drv_register
+
+    if(buf_1 != NULL)
+        free(buf_1);
+    disp_deinit();
+}
+
 void drm_disp_drv_init(int rot)
 {
     /*-------------------------
@@ -1143,7 +1172,7 @@ void drm_disp_drv_init(int rot)
     disp_drv.draw_buf = &draw_buf_dsc_1;
 
     /*Finally register the driver*/
-    lv_disp_drv_register(&disp_drv);
+    lv_disp_drm = lv_disp_drv_register(&disp_drv);
     pthread_mutex_init(&draw_mutex, NULL);
     pthread_create(&drm_thread_pid, NULL, drm_thread, NULL);
 }
