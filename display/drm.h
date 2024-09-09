@@ -46,6 +46,7 @@ extern "C" {
  * GLOBAL PROTOTYPES
  **********************/
 int drm_init(int bpp);
+void drm_disp_drv_deinit(void);
 void drm_disp_drv_init(int rot);
 int drm_exit(void);
 void drm_flush(lv_disp_drv_t * drv, const lv_area_t * area, lv_color_t * color_p);
