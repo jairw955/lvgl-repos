@@ -58,6 +58,7 @@
 /**********************
  *  STATIC PROTOTYPES
  **********************/
+static int drm_encode = 0;
 static void *pMblk;
 
 struct disp_buffer
@@ -130,6 +131,7 @@ static int drm_find_connector(int32_t dev_fd)
 {
     drmModeConnector *conn = NULL;
     drmModeRes *res = NULL;
+    drmModeEncoder *encode = NULL;
     int32_t i;
 
     if ((res = drmModeGetResources(dev_fd)) == NULL)
@@ -189,6 +191,20 @@ static int drm_find_connector(int32_t dev_fd)
         goto free_res;
     }
 
+    encode = drmModeGetEncoder(dev_fd, conn->encoders[0]);
+    if(encode != NULL) {
+        if(encode->encoder_type == DRM_MODE_ENCODER_DSI){
+            printf("drm encode type is MIPI\n");
+            drm_encode = DRM_MODE_ENCODER_DSI;
+        }
+        if(encode->encoder_type == DRM_MODE_ENCODER_DPI){
+            printf("drm encode type is LCD\n");
+            drm_encode = DRM_MODE_ENCODER_DPI;
+        }
+    }
+    if(encode) {
+        drmModeFreeEncoder(encode);
+    }
     disp_dev.width = conn->modes[0].hdisplay;
     if (disp_dev.width % 16 != 0)
     {
@@ -198,6 +214,9 @@ static int drm_find_connector(int32_t dev_fd)
     disp_dev.mm_width = conn->mmWidth;
     disp_dev.mm_height = conn->mmHeight;
 
+    if(conn) {
+        drmModeFreeConnector(conn);
+    }
     return 0;
 
 free_res:
@@ -259,7 +278,14 @@ static int32_t rk_disp_setup(void)
 #ifdef PLATFORM_RV1106
     ui_attr.enUiVoIntfTye = DISPLAY_TYPE_DEFAULT;
 #else
-    ui_attr.enUiVoIntfTye = DISPLAY_TYPE_MIPI;
+    if(drm_encode == DRM_MODE_ENCODER_DSI){
+        ui_attr.enUiVoIntfTye = DISPLAY_TYPE_MIPI;
+    }else if(drm_encode == DRM_MODE_ENCODER_DPI){
+        ui_attr.enUiVoIntfTye = DISPLAY_TYPE_LCD;
+    }else{
+        ui_attr.enUiVoIntfTye = DISPLAY_TYPE_MIPI;
+    }
+
 #endif
 
     ret = RKADK_UI_Create(&ui_attr, &disp_dev.ui_ptr);
