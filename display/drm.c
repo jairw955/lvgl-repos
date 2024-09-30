@@ -879,7 +879,7 @@ void setdrmdisp(struct drm_bo *bo)
     struct device* dev = pdev;
     int crtc_x, crtc_y, crtc_w, crtc_h;
     int ret;
-    int fb = bo->fb_id, sw = dev->mode.width, sh = dev->mode.height;
+    int fb = bo->fb_id, sw = lcd_w, sh= lcd_h;
 
     if (dev == NULL)
         return;
@@ -974,6 +974,25 @@ static void *drm_thread(void *arg)
     return NULL;
 }
 
+static int32_t lv_env_get_u32(const char *name, uint32_t *value, uint32_t default_value)
+{
+    char *ptr = getenv(name);
+
+    if (NULL == ptr) {
+        *value = default_value;
+    } else {
+        char *endptr;
+        int base = (ptr[0] == '0' && ptr[1] == 'x') ? (16) : (10);
+        errno = 0;
+        *value = strtoul(ptr, &endptr, base);
+        if (errno || (ptr == endptr)) {
+            errno = 0;
+            *value = default_value;
+        }
+    }
+    return 0;
+}
+
 void drm_flush(lv_disp_drv_t *disp_drv, const lv_area_t *area, lv_color_t *color_p)
 {
    /*The most simple case (but also the slowest) to put all pixels to the screen one-by-one*/
@@ -1042,8 +1061,14 @@ void disp_init(void)
     int buf_w, buf_h;
     /*You code here*/
     drm_init(32);
-    getdrmresolve(&lcd_w, &lcd_h);
-    printf("%s bit depth %d\n", __func__, LV_COLOR_DEPTH);
+
+    lv_env_get_u32("lv_disp_width", &lcd_w, 0);
+    lv_env_get_u32("lv_disp_height", &lcd_h, 0);
+
+    if(lcd_w == 0 || lcd_h == 0)
+        getdrmresolve(&lcd_w, &lcd_h);
+
+    printf("%s res1:[%d x %d] bit depth %d\n", __func__, lcd_w, lcd_h, LV_COLOR_DEPTH);
     if (LV_COLOR_DEPTH == 16) {
         format = DRM_FORMAT_RGB565;
     } else {
