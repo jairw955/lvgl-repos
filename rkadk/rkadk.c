@@ -741,6 +741,7 @@ void rkadk_disp_drv_init(lv_disp_rot_t rotate_disp)
         disp_drv.rotated = LV_DISP_ROT_270;
     }
 
+    disp_drv.screen_transp = LV_COLOR_SCREEN_TRANSP;
     /*Used to copy the buffer's content to the display*/
     disp_drv.flush_cb = rk_disp_flush;
 

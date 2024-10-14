@@ -1163,6 +1163,7 @@ void drm_disp_drv_init(int rot)
         disp_drv.ver_res = lcd_w;
     }
 
+    disp_drv.screen_transp = LV_COLOR_SCREEN_TRANSP;
     disp_drv.sw_rotate = 0;
     disp_drv.rotated = LV_DISP_ROT_NONE;
     /*Used to copy the buffer's content to the display*/
