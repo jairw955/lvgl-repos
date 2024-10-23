@@ -1,5 +1,5 @@
 /**
- * @file lv_linux_drm.h
+ * @file drm.h
  *
  */
 
@@ -13,8 +13,7 @@ extern "C" {
 /*********************
  *      INCLUDES
  *********************/
-
-#include "../../../display/lv_display.h"
+#include <lvgl.h>
 
 #if LV_USE_LINUX_DRM
 
@@ -29,18 +28,17 @@ extern "C" {
 /**********************
  * GLOBAL PROTOTYPES
  **********************/
-lv_display_t * lv_linux_drm_create(void);
-
-void lv_linux_drm_set_file(lv_display_t * disp, const char * file, int64_t connector_id);
+lv_display_t * lv_drm_disp_create(int hor_res, int ver_res, int rot);
+int lv_drm_disp_delete(lv_display_t * disp);
 
 /**********************
  *      MACROS
  **********************/
 
-#endif /* LV_USE_LINUX_DRM */
+#endif  /*LV_USE_LINUX_DRM*/
 
 #ifdef __cplusplus
 } /* extern "C" */
 #endif
 
-#endif /* LV_LINUX_DRM_H */
+#endif /*DRM_H*/
