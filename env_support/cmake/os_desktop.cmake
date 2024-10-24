@@ -201,7 +201,8 @@ endif()
 # Set the configuration inc dir for all targets created in this CMakeLists.txt
 # CMAKE_CURRENT_SOURCE_DIR is necessary because the assets include lvgl/lvgl.h ...
 include_directories(${CONF_INC_DIR} ${LVGL_ROOT_DIR}
-    ${CMAKE_SYSROOT}/usr/include/freetype2)
+    ${CMAKE_SYSROOT}/usr/include/freetype2
+    ${CMAKE_SYSROOT}/usr/include/libdrm)
 
 target_include_directories(lvgl SYSTEM PUBLIC ${LVGL_ROOT_DIR} ${CONF_INC_DIR} ${CMAKE_CURRENT_BINARY_DIR})
 
