@@ -31,6 +31,8 @@
 #include <xf86drm.h>
 #include <xf86drmMode.h>
 
+#include "../lv_display_common.h"
+
 #define NUM_DUMB_BO 3
 #define ALIGN(x, a)     (((x) + (a - 1)) & ~(a - 1))
 
@@ -100,6 +102,7 @@ typedef struct drm_device {
 #if LV_DRM_USE_RGA
     drm_bo_t *gbo;
 #endif
+    overlay_dma_buffer_t overlay;
 } drm_device_t;
 
 static int bo_map(drm_device_t *dev, drm_bo_t *bo)
@@ -880,6 +883,81 @@ static void setdrmdisp(drm_device_t* dev, drm_bo_t *bo)
     }
 }
 
+#if LV_DRM_USE_RGA
+static void drm_overlay(drm_device_t * dev, drm_bo_t *bo)
+{
+    if (dev->overlay.fd)
+    {
+        rga_buffer_t src_img, dst_img, pat_img;
+        im_rect src_rect, dst_rect, pat_rect;
+        int src_fd = dev->overlay.fd;
+        int dst_fd = bo->buf_fd;
+        int usage = IM_SYNC;
+        int ret;
+
+        switch (dev->disp_rot)
+        {
+        case 90:
+            dst_rect.x = dev->overlay.dst_y;
+            dst_rect.y = dev->overlay.dst_x;
+            dst_rect.width = dev->overlay.h;
+            dst_rect.height = dev->overlay.w;
+            usage |= IM_HAL_TRANSFORM_ROT_90;
+            break;
+        case 180:
+            dst_rect.x = dev->overlay.dst_x;
+            dst_rect.y = dev->overlay.dst_y;
+            dst_rect.width = dev->overlay.w;
+            dst_rect.height = dev->overlay.h;
+            usage |= IM_HAL_TRANSFORM_ROT_180;
+            break;
+        case 270:
+            dst_rect.x = dev->overlay.dst_y;
+            dst_rect.y = dev->overlay.dst_x;
+            dst_rect.width = dev->overlay.h;
+            dst_rect.height = dev->overlay.w;
+            usage |= IM_HAL_TRANSFORM_ROT_270;
+            break;
+        default:
+            break;
+        }
+
+        src_img = wrapbuffer_fd(src_fd, dev->overlay.w,
+                                dev->overlay.h, RGA_FORMAT,
+                                dev->overlay.vw, dev->overlay.vh);
+        dst_img = wrapbuffer_fd(dst_fd, bo->w,
+                                bo->h, RGA_FORMAT,
+                                bo->pitch / (LV_COLOR_DEPTH >> 3),
+                                bo->h);
+        src_rect.x = dev->overlay.ofs_x;
+        src_rect.y = dev->overlay.ofs_y;
+        src_rect.width = dev->overlay.w;
+        src_rect.height = dev->overlay.h;
+//        printf("%s %d %d %d %d %d %d %d %d\n", __func__,
+//               src_rect.x, src_rect.y, src_rect.width, src_rect.height,
+//               dst_rect.x, dst_rect.y, dst_rect.width, dst_rect.height);
+        memset(&pat_img, 0, sizeof(pat_img));
+        memset(&pat_rect, 0, sizeof(pat_rect));
+        usage |= (IM_ALPHA_BLEND_SRC_OVER | IM_ALPHA_BLEND_PRE_MUL);
+        ret = imcheck_composite(src_img, dst_img, pat_img,
+                                src_rect, dst_rect, pat_rect);
+        if (ret != IM_STATUS_NOERROR)
+        {
+            LV_LOG_ERROR("%d, check error! %s\n", __LINE__,
+                         imStrError((IM_STATUS)ret));
+        }
+        else
+        {
+            ret = improcess(src_img, dst_img, pat_img,
+                            src_rect, dst_rect, pat_rect, usage);
+            if (ret != IM_STATUS_SUCCESS)
+                LV_LOG_ERROR("%d, running failed, %s\n", __LINE__,
+                             imStrError((IM_STATUS)ret));
+        }
+    }
+}
+#endif
+
 static void *drm_thread(void *arg)
 {
     drm_device_t * dev = (drm_device_t *)arg;
@@ -948,6 +1026,7 @@ static void *drm_thread(void *arg)
                     LV_LOG_ERROR("%d, running failed, %s\n", __LINE__,
                                  imStrError((IM_STATUS)ret));
             }
+            drm_overlay(dev, bo);
 #else
             for (int i = 0; i < dev->mode.height; i++)
             {
@@ -1087,6 +1166,76 @@ end:
     lv_display_delete(disp);
 
     return 0;
+}
+
+overlay_dma_buffer_t *lv_drm_disp_create_overlay(lv_display_t * disp,
+                                                 int w, int h)
+{
+    drm_device_t* dev = lv_display_get_driver_data(disp);
+    overlay_dma_buffer_t * overlay;
+    drm_bo_t *bo;
+
+    overlay = lv_malloc_zeroed(sizeof(overlay_dma_buffer_t));
+    if (!overlay)
+    {
+        LV_LOG_ERROR("Create overlay failed");
+        return NULL;
+    }
+
+    bo = malloc_drm_bo(dev, w, h, DRM_FORMAT);
+    if (!bo)
+    {
+        LV_LOG_ERROR("Create bo failed");
+        lv_free(overlay);
+        return NULL;
+    }
+
+    overlay->user_data = bo;
+    overlay->fd = bo->buf_fd;
+    overlay->data = bo->ptr;
+    overlay->stride = bo->pitch / (LV_COLOR_DEPTH >> 3);
+
+    return overlay;
+}
+
+void lv_drm_disp_destroy_overlay(lv_display_t * disp,
+                                 overlay_dma_buffer_t * overlay)
+{
+    drm_device_t* dev = lv_display_get_driver_data(disp);
+    drm_bo_t *bo;
+
+    if (!dev)
+        return;
+
+    if (!overlay)
+        return;
+
+    bo = overlay->user_data;
+    if (!bo)
+        return;
+
+    free_drm_bo(dev, bo);
+    lv_free(overlay);
+}
+
+void lv_drm_disp_set_overlay(lv_display_t * disp,
+                             overlay_dma_buffer_t * overlay)
+{
+#if LV_DRM_USE_RGA
+    drm_device_t* dev = lv_display_get_driver_data(disp);
+
+    if (!dev)
+        return;
+
+    if (!overlay)
+    {
+        memset(&dev->overlay, 0, sizeof(overlay_dma_buffer_t));
+        return;
+    }
+    memcpy(&dev->overlay, overlay, sizeof(overlay_dma_buffer_t));
+#else
+    LV_LOG_WARN("No support overlay without RGA");
+#endif
 }
 
 #endif
