@@ -31,6 +31,7 @@
 #include <rga/im2d.h>
 
 #include "rkadk.h"
+#include "../lv_display_common.h"
 /**********************
  *      MACROS
  **********************/
@@ -64,6 +65,8 @@ typedef struct disp_dev
     uint32_t width, height;
     uint32_t mm_width, mm_height;
     int drm_encode;
+
+    overlay_dma_buffer_t overlay;
 } disp_dev_t;
 
 /**********************
@@ -470,6 +473,38 @@ void rk_disp_flush(lv_display_t * disp, const lv_area_t * area, uint8_t * color_
     ret = imcopy(src_img, dst_img);
     if (ret != IM_STATUS_SUCCESS)
         err("%d, running failed, %s\n", __LINE__, imStrError((IM_STATUS)ret));
+
+    if (rkadk_dev->overlay.fd)
+    {
+        rga_buffer_t pat_img;
+        im_rect src_rect, dst_rect, pat_rect;
+        src_fd = rkadk_dev->overlay.fd;
+        src_img = wrapbuffer_fd(src_fd, rkadk_dev->overlay.w,
+                                rkadk_dev->overlay.h, format,
+                                rkadk_dev->overlay.vw, rkadk_dev->overlay.vh);
+        src_rect.x = rkadk_dev->overlay.ofs_x;
+        src_rect.y = rkadk_dev->overlay.ofs_y;
+        src_rect.width = rkadk_dev->overlay.w;
+        src_rect.height = rkadk_dev->overlay.h;
+        dst_rect.x = rkadk_dev->overlay.dst_x;
+        dst_rect.y = rkadk_dev->overlay.dst_y;
+        dst_rect.width = rkadk_dev->overlay.w;
+        dst_rect.height = rkadk_dev->overlay.h;
+        //printf("%s %d %d %d %d %d %d %d %d\n", __func__,
+        //       src_rect.x, src_rect.y, src_rect.width, src_rect.height,
+        //       dst_rect.x, dst_rect.y, dst_rect.width, dst_rect.height);
+        memset(&pat_img, 0, sizeof(pat_img));
+        memset(&pat_rect, 0, sizeof(pat_rect));
+        int usage = IM_SYNC | IM_ALPHA_BLEND_SRC_OVER | IM_ALPHA_BLEND_PRE_MUL;
+        ret = imcheck_composite(src_img, dst_img, pat_img, src_rect, dst_rect, pat_rect);
+        if (ret != IM_STATUS_NOERROR) {
+            err("%d, check error! %s\n", __LINE__, imStrError((IM_STATUS)ret));
+            return;
+        }
+        ret = improcess(src_img, dst_img, pat_img, src_rect, dst_rect, pat_rect, usage);
+        if (ret != IM_STATUS_SUCCESS)
+            err("%d, running failed, %s\n", __LINE__, imStrError((IM_STATUS)ret));
+    }
 #endif
     rkadk_dev->frame_info.pMblk = blk;
     RK_MPI_SYS_MmzFlushCache(blk, RK_FALSE);
@@ -554,6 +589,73 @@ void lv_rkadk_disp_delete(lv_display_t * disp)
     rk_disp_exit(rkadk_dev);
 
     lv_display_delete(disp);
+}
+
+overlay_dma_buffer_t *lv_rkadk_disp_create_overlay(lv_display_t * disp,
+                                                   int w, int h)
+{
+    disp_dev_t * dev = lv_display_get_driver_data(disp);
+    overlay_dma_buffer_t * overlay;
+    uint32_t size;
+    MB_BLK blk;
+
+    overlay = lv_malloc_zeroed(sizeof(overlay_dma_buffer_t));
+    if (!overlay)
+    {
+        LV_LOG_ERROR("Create overlay failed");
+        return NULL;
+    }
+
+    size = w * h * (LV_COLOR_DEPTH >> 3);
+    if (0 != RK_MPI_MMZ_Alloc(&blk, size, RK_MMZ_ALLOC_CACHEABLE))
+    {
+        LV_LOG_ERROR("RK_MPI_MMZ_Alloc failed\n");
+        lv_free(overlay);
+        return NULL;
+    }
+
+    overlay->user_data = blk;
+    overlay->fd = RK_MPI_MMZ_Handle2Fd(blk);
+    overlay->data = RK_MPI_MMZ_Handle2VirAddr(blk);
+    overlay->stride = w;
+
+    return overlay;
+}
+
+void lv_rkadk_disp_destroy_overlay(lv_display_t * disp,
+                                   overlay_dma_buffer_t * overlay)
+{
+    disp_dev_t * dev = lv_display_get_driver_data(disp);
+    MB_BLK blk;
+
+    if (!dev)
+        return;
+
+    if (!overlay)
+        return;
+
+    blk = overlay->user_data;
+    if (!blk)
+        return;
+
+    RK_MPI_MMZ_Free(blk);
+    lv_free(overlay);
+}
+
+void lv_rkadk_disp_set_overlay(lv_display_t * disp,
+                               overlay_dma_buffer_t * overlay)
+{
+    disp_dev_t * dev = lv_display_get_driver_data(disp);
+
+    if (!dev)
+        return;
+
+    if (!overlay)
+    {
+        memset(&dev->overlay, 0, sizeof(overlay_dma_buffer_t));
+        return;
+    }
+    memcpy(&dev->overlay, overlay, sizeof(overlay_dma_buffer_t));
 }
 
 #endif
