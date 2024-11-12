@@ -211,7 +211,8 @@ static void img_draw_core(lv_draw_unit_t * draw_unit, const lv_draw_image_dsc_t 
         int32_t src_h = lv_area_get_height(img_coords);
         int32_t src_w = lv_area_get_width(img_coords);
         blend_dsc.src_area = img_coords;
-        blend_dsc.src_buf = src_buf;
+        blend_dsc.src_buf = decoded;
+        blend_dsc.src_buf_is_draw_buf = true;
         blend_dsc.mask_buf = (lv_opa_t *)src_buf;
         blend_dsc.mask_buf += img_stride * src_w / header->w * src_h;
         /**
@@ -229,7 +230,8 @@ static void img_draw_core(lv_draw_unit_t * draw_unit, const lv_draw_image_dsc_t 
     /*The simplest case just copy the pixels into the draw_buf. Blending will convert the colors if needed*/
     else if(!transformed && !masked && draw_dsc->recolor_opa <= LV_OPA_MIN) {
         blend_dsc.src_area = img_coords;
-        blend_dsc.src_buf = src_buf;
+        blend_dsc.src_buf = decoded;
+        blend_dsc.src_buf_is_draw_buf = true;
         blend_dsc.blend_area = img_coords;
         blend_dsc.src_color_format = cf;
         lv_draw_sw_blend(draw_unit, &blend_dsc);
@@ -237,7 +239,8 @@ static void img_draw_core(lv_draw_unit_t * draw_unit, const lv_draw_image_dsc_t 
     /*Handle masked RGB565, RGB888, XRGB888, or ARGB8888 images*/
     else if(!transformed && masked && draw_dsc->recolor_opa <= LV_OPA_MIN) {
         blend_dsc.src_area = img_coords;
-        blend_dsc.src_buf = src_buf;
+        blend_dsc.src_buf = decoded;
+        blend_dsc.src_buf_is_draw_buf = true;
         blend_dsc.blend_area = img_coords;
         blend_dsc.src_color_format = cf;
         blend_dsc.mask_buf = draw_dsc->bitmap_mask_src->data;

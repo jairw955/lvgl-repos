@@ -13,6 +13,10 @@
 
 #if LV_USE_DRAW_SW
 
+#if LV_USE_DRAW_RGA
+#include "../../rga/lv_draw_rga_blend.h"
+#endif
+
 /*********************
  *      DEFINES
  *********************/
@@ -69,6 +73,12 @@ void lv_draw_sw_blend(lv_draw_unit_t * draw_unit, const lv_draw_sw_blend_dsc_t *
             fill_dsc.mask_buf += fill_dsc.mask_stride * (blend_area.y1 - blend_dsc->mask_area->y1) +
                                  (blend_area.x1 - blend_dsc->mask_area->x1);
         }
+#if LV_USE_DRAW_RGA
+        else {
+            if (lv_draw_rga_blend_color(layer, blend_dsc, &blend_area) == LV_RESULT_OK)
+                goto end;
+        }
+#endif
 
         switch(layer->color_format) {
             case LV_COLOR_FORMAT_RGB565:
@@ -108,8 +118,12 @@ void lv_draw_sw_blend(lv_draw_unit_t * draw_unit, const lv_draw_sw_blend_dsc_t *
         image_dsc.src_stride = blend_dsc->src_stride;
         image_dsc.src_color_format = blend_dsc->src_color_format;
 
-        const uint8_t * src_buf = blend_dsc->src_buf;
+        const uint8_t * src_buf;
         uint32_t src_px_size = lv_color_format_get_size(blend_dsc->src_color_format);
+        if (blend_dsc->src_buf_is_draw_buf)
+            src_buf = lv_draw_buf_goto_xy((lv_draw_buf_t *)(blend_dsc->src_buf), 0, 0);
+        else
+            src_buf = blend_dsc->src_buf;
         src_buf += image_dsc.src_stride * (blend_area.y1 - blend_dsc->src_area->y1);
         src_buf += (blend_area.x1 - blend_dsc->src_area->x1) * src_px_size;
         image_dsc.src_buf = src_buf;
@@ -124,6 +138,12 @@ void lv_draw_sw_blend(lv_draw_unit_t * draw_unit, const lv_draw_sw_blend_dsc_t *
             image_dsc.mask_buf += image_dsc.mask_stride * (blend_area.y1 - blend_dsc->mask_area->y1) +
                                   (blend_area.x1 - blend_dsc->mask_area->x1);
         }
+#if LV_USE_DRAW_RGA
+        else {
+            if (lv_draw_rga_blend_image(layer, blend_dsc, &blend_area) == LV_RESULT_OK)
+                goto end;
+        }
+#endif
 
         image_dsc.dest_buf = lv_draw_layer_go_to_xy(layer, blend_area.x1 - layer->buf_area.x1,
                                                     blend_area.y1 - layer->buf_area.y1);
@@ -146,6 +166,7 @@ void lv_draw_sw_blend(lv_draw_unit_t * draw_unit, const lv_draw_sw_blend_dsc_t *
                 break;
         }
     }
+end:
     LV_PROFILER_END;
 }
 

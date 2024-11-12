@@ -134,6 +134,8 @@
         #define LV_DRAW_RK_TRANSFORM_SCALER_CORES @BR2_LV_DRAW_RK_TRANSFORM_SCALER_CORES@
     #endif
 
+    #define LV_USE_DRAW_RGA             @BR2_LV_USE_DRAW_RGA@
+
     /* 0: use a simple renderer capable of drawing only simple rectangles with gradient, images, texts, and straight lines only
      * 1: use a complex renderer capable of drawing rounded corners, shadow, skew lines, and arcs too */
     #define LV_DRAW_SW_COMPLEX          @BR2_LV_DRAW_SW_COMPLEX@
