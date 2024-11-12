@@ -80,12 +80,34 @@ typedef void (*lv_draw_buf_invalidate_cache_cb)(const lv_draw_buf_t * draw_buf, 
 
 typedef uint32_t (*lv_draw_buf_width_to_stride_cb)(uint32_t w, lv_color_format_t color_format);
 
+typedef lv_draw_buf_t * (*lv_draw_buf_create_cb)(uint32_t w, uint32_t h, lv_color_format_t cf, uint32_t stride);
+
+typedef void (*lv_draw_buf_destroy_cb)(lv_draw_buf_t * buf);
+
+typedef lv_result_t (*lv_draw_buf_init_cb)(lv_draw_buf_t * draw_buf, uint32_t w, uint32_t h, lv_color_format_t cf, uint32_t stride, void * data, uint32_t data_size);
+
+typedef void (*lv_draw_buf_clear_cb)(lv_draw_buf_t * draw_buf, const lv_area_t * a);
+
+typedef void (*lv_draw_buf_copy_cb)(lv_draw_buf_t * dest, const lv_area_t * dest_area, const lv_draw_buf_t * src, const lv_area_t * src_area);
+
+typedef lv_draw_buf_t * (*lv_draw_buf_dup_cb)(const lv_draw_buf_t * draw_buf);
+
+typedef lv_draw_buf_t * (*lv_draw_buf_reshape_cb)(lv_draw_buf_t * draw_buf, lv_color_format_t cf, uint32_t w, uint32_t h, uint32_t stride);
+
 typedef struct {
     lv_draw_buf_malloc_cb buf_malloc_cb;
     lv_draw_buf_free_cb buf_free_cb;
     lv_draw_buf_align_cb align_pointer_cb;
     lv_draw_buf_invalidate_cache_cb invalidate_cache_cb;
     lv_draw_buf_width_to_stride_cb width_to_stride_cb;
+
+    lv_draw_buf_create_cb create_cb;
+    lv_draw_buf_destroy_cb destroy_cb;
+    lv_draw_buf_init_cb init_cb;
+    lv_draw_buf_clear_cb clear_cb;
+    lv_draw_buf_copy_cb copy_cb;
+    lv_draw_buf_dup_cb dup_cb;
+    lv_draw_buf_reshape_cb reshape_cb;
 } lv_draw_buf_handlers_t;
 
 /**********************

@@ -60,6 +60,9 @@ typedef struct disp_dev
     RKADK_MW_PTR ui_ptr;
     lv_display_rotation_t rot;
     MB_BLK draw_buf_blk;
+#if LV_USE_DRAW_RGA
+    lv_draw_buf_t lv_draw_buf;
+#endif
     struct disp_buffer draw_buf;
     RKADK_UI_FRAME_INFO frame_info;
     MB_POOL buf_pool;
@@ -570,9 +573,23 @@ lv_display_t *lv_rkadk_disp_create(lv_display_rotation_t rotate_disp)
     }
     lv_display_set_driver_data(disp, rkadk_dev);
     lv_display_set_flush_cb(disp, rk_disp_flush);
+
+#if !LV_USE_DRAW_RGA
     lv_display_set_buffers(disp, rkadk_dev->draw_buf.map, NULL,
                            rkadk_dev->draw_buf.size,
                            LV_DISPLAY_RENDER_MODE_DIRECT);
+#else
+    lv_draw_buf_init(&rkadk_dev->lv_draw_buf,
+                     lv_display_get_horizontal_resolution(disp),
+                     lv_display_get_vertical_resolution(disp),
+                     lv_display_get_color_format(disp), 0,
+                     rkadk_dev->draw_buf.map,
+                     rkadk_dev->draw_buf.size);
+    rkadk_dev->lv_draw_buf.unaligned_data = blk;
+    rkadk_dev->lv_draw_buf.header.flags |= LV_IMAGE_FLAGS_RGA;
+    lv_display_set_draw_buffers(disp, &rkadk_dev->lv_draw_buf, NULL);
+    lv_display_set_render_mode(disp, LV_DISPLAY_RENDER_MODE_DIRECT);
+#endif
     lv_display_set_color_format(disp, LV_COLOR_FORMAT_NATIVE_WITH_ALPHA);
 
     return disp;

@@ -66,6 +66,7 @@ typedef enum _lv_image_flags_t {
     LV_IMAGE_FLAGS_USER6            = 0x2000,
     LV_IMAGE_FLAGS_USER7            = 0x4000,
     LV_IMAGE_FLAGS_USER8            = 0x8000,
+    LV_IMAGE_FLAGS_RGA              = LV_IMAGE_FLAGS_USER1,
 } lv_image_flags_t;
 
 typedef enum {

@@ -32,6 +32,7 @@ typedef struct {
     const lv_area_t * blend_area;   /**< The area with absolute coordinates to draw on `layer->buf`
                                      *   will be clipped to `layer->clip_area` */
     const void * src_buf;     /**< Pointer to an image to blend. If set `fill_color` is ignored */
+    uint8_t src_buf_is_draw_buf;
     uint32_t src_stride;
     lv_color_format_t src_color_format;
     const lv_area_t * src_area;
