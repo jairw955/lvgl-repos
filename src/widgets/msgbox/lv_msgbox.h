@@ -74,6 +74,13 @@ lv_obj_t * lv_msgbox_add_header_button(lv_obj_t * obj, const void * icon);
 lv_obj_t * lv_msgbox_add_text(lv_obj_t * obj, const char * text);
 
 /**
+ * Add a textarea to the content area of message box.
+ * @param obj           pointer to a message box
+ * @return              the created button
+ */
+lv_obj_t * lv_msgbox_add_textarea(lv_obj_t * obj);
+
+/**
  * Add a button to the footer of to the message box. It also creates a footer.
  * @param obj           pointer to a message box
  * @param text          the text of the button
