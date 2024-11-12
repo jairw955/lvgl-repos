@@ -39,6 +39,9 @@
 #if LV_USE_DRAW_VG_LITE
     #include "draw/vg_lite/lv_draw_vg_lite.h"
 #endif
+#if LV_USE_DRAW_RGA
+    #include "draw/rga/lv_draw_rga.h"
+#endif
 #if LV_USE_WINDOWS
     #include "drivers/windows/lv_windows_context.h"
 #endif
@@ -207,6 +210,10 @@ void lv_init(void)
     lv_draw_vg_lite_init();
 #endif
 
+#if LV_USE_DRAW_RGA
+    lv_draw_rga_init();
+#endif
+
     /*Test if the IDE has UTF-8 encoding*/
     const char * txt = "Á";
 
@@ -372,6 +379,10 @@ void lv_deinit(void)
 
 #if LV_USE_DRAW_VG_LITE
     lv_draw_vg_lite_deinit();
+#endif
+
+#if LV_USE_DRAW_RGA
+    lv_draw_rga_deinit();
 #endif
 
 #if LV_USE_DRAW_SW

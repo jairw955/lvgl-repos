@@ -31,6 +31,11 @@
 #include <xf86drm.h>
 #include <xf86drmMode.h>
 
+#if LV_USE_DRAW_RGA
+#include <rk_mpi_mmz.h>
+#include <rk_mpi_sys.h>
+#endif
+
 #include "../lv_display_common.h"
 
 #define NUM_DUMB_BO 3
@@ -109,6 +114,9 @@ typedef struct drm_device {
     pthread_mutex_t mutex;
     int draw_update;
 
+#if LV_USE_DRAW_RGA
+    lv_draw_buf_t lv_draw_buf;
+#endif
     drm_bo_t *vop_buf[2];
 #if LV_DRM_USE_RGA
     drm_bo_t *gbo;
@@ -1281,6 +1289,9 @@ lv_display_t * lv_drm_disp_create(int hor_res, int ver_res, int rot)
 {
     lv_display_t * disp;
 
+#if LV_USE_DRAW_RGA
+    RK_MPI_SYS_Init();
+#endif
     drm_device_t * dev = drm_init();
     if (!dev)
         return NULL;
@@ -1308,12 +1319,30 @@ lv_display_t * lv_drm_disp_create(int hor_res, int ver_res, int rot)
     }
 
     int size = dev->lcd_w * dev->lcd_h * (LV_COLOR_DEPTH >> 3);
-    dev->disp_buf = lv_malloc(size);
     lv_display_set_driver_data(disp, dev);
     lv_display_set_flush_cb(disp, drm_flush);
+    lv_display_set_color_format(disp, LV_COLOR_FORMAT_NATIVE_WITH_ALPHA);
+#if !LV_USE_DRAW_RGA
+    dev->disp_buf = lv_malloc(size);
     lv_display_set_buffers(disp, dev->disp_buf, NULL, size,
                            LV_DISPLAY_RENDER_MODE_PARTIAL);
-    lv_display_set_color_format(disp, LV_COLOR_FORMAT_NATIVE_WITH_ALPHA);
+#else
+    MB_BLK blk;
+    if (0 != RK_MPI_MMZ_Alloc(&blk, size, RK_MMZ_ALLOC_CACHEABLE))
+    {
+        LV_LOG_ERROR("RK_MPI_MMZ_Alloc failed\n");
+        return NULL;
+    }
+    lv_draw_buf_init(&dev->lv_draw_buf,
+                     lv_display_get_horizontal_resolution(disp),
+                     lv_display_get_vertical_resolution(disp),
+                     lv_display_get_color_format(disp), 0,
+                     RK_MPI_MMZ_Handle2VirAddr(blk), size);
+    dev->lv_draw_buf.unaligned_data = blk;
+    dev->lv_draw_buf.header.flags |= LV_IMAGE_FLAGS_RGA;
+    lv_display_set_draw_buffers(disp, &dev->lv_draw_buf, NULL);
+    lv_display_set_render_mode(disp, LV_DISPLAY_RENDER_MODE_PARTIAL);
+#endif
 
     pthread_mutex_init(&dev->mutex, NULL);
     pthread_create(&dev->pid, NULL, drm_thread, dev);
@@ -1335,7 +1364,11 @@ int lv_drm_disp_delete(lv_display_t * disp)
 
     drm_deinit(dev);
 
+#if !LV_USE_DRAW_RGA
     lv_free(dev->disp_buf);
+#else
+    RK_MPI_MMZ_Free((MB_BLK)dev->lv_draw_buf.unaligned_data);
+#endif
     lv_free(dev);
 end:
     lv_display_delete(disp);
