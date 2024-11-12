@@ -37,6 +37,7 @@
  **********************/
 #define DRM_CARD            "/dev/dri/card0"
 #define DRM_CONNECTOR_ID    -1    /* -1 for the first connected one */
+#define WIDTH_MARGIN        0
 
 #define DBG_TAG             "drm"
 
@@ -262,7 +263,8 @@ static int32_t rk_disp_setup(disp_dev_t * rkadk_dev)
     ui_attr.u32VoDev = -1;
     ui_attr.u32VoLay = -1;
     ui_attr.u32DispFrmRt = 60;
-    ui_attr.u32DispWidth = rkadk_dev->width;
+    ui_attr.u32DispX = WIDTH_MARGIN / 2;
+    ui_attr.u32DispWidth = rkadk_dev->width - WIDTH_MARGIN;
     ui_attr.u32DispHeight = rkadk_dev->height;
     ui_attr.u32ImgWidth = rkadk_dev->width;
     ui_attr.u32ImgHeight = rkadk_dev->height;
@@ -347,11 +349,11 @@ static int rk_disp_setup_buffers(disp_dev_t * rkadk_dev)
         (rkadk_dev->rot == LV_DISPLAY_ROTATION_270))
     {
         rkadk_dev->frame_info.u32Width = rkadk_dev->height;
-        rkadk_dev->frame_info.u32Height = rkadk_dev->width;
+        rkadk_dev->frame_info.u32Height = rkadk_dev->width - WIDTH_MARGIN;
     }
     else
     {
-        rkadk_dev->frame_info.u32Width = rkadk_dev->width;
+        rkadk_dev->frame_info.u32Width = rkadk_dev->width - WIDTH_MARGIN;
         rkadk_dev->frame_info.u32Height = rkadk_dev->height;
     }
 
@@ -517,7 +519,7 @@ end:
 void rk_disp_get_sizes(disp_dev_t * rkadk_dev, lv_coord_t *width, lv_coord_t *height, uint32_t *dpi)
 {
     if (width)
-        *width = rkadk_dev->width;
+        *width = rkadk_dev->width - WIDTH_MARGIN;
 
     if (height)
         *height = rkadk_dev->height;
