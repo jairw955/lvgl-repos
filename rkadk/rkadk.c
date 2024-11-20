@@ -274,6 +274,7 @@ static int32_t rk_disp_setup(void)
     ui_attr.u32ImgHeight = disp_dev.height;
     ui_attr.enUiVoFormat = VO_FORMAT_RGB888;
     ui_attr.enVoSpliceMode = SPLICE_MODE_RGA;
+    ui_attr.u32DispBufLen = 2;
 
 #ifdef PLATFORM_RV1106
     ui_attr.enUiVoIntfTye = DISPLAY_TYPE_DEFAULT;
