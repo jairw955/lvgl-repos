@@ -466,7 +466,7 @@ static void draw_bg_grad_radius(lv_draw_sdl_ctx_t * ctx, const lv_area_t * coord
     lv_coord_t bg_w = lv_area_get_width(coords), bg_h = lv_area_get_height(coords);
     lv_coord_t real_radius = LV_MIN3(bg_w / 2, bg_h / 2, radius);
     bool grad_texture_in_cache = false;
-    SDL_Texture * grad_texture = lv_draw_sdl_rect_grad_frag_obtain(ctx, &dsc->bg_grad, bg_w, bg_h, radius,
+    SDL_Texture * grad_texture = lv_draw_sdl_rect_grad_frag_obtain(ctx, &dsc->bg_grad, bg_w, bg_h, real_radius,
                                                                    &grad_texture_in_cache);
     SDL_SetTextureBlendMode(grad_texture, SDL_BLENDMODE_BLEND);
 
