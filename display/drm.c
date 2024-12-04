@@ -93,6 +93,7 @@ static int lcd_sw;
 static char* drm_buff;
 static lv_color_t *buf_1;
 static int disp_rot = 0;
+static int disp_crop = 0;
 
 static int quit = 0;
 static pthread_t drm_thread_pid;
@@ -942,10 +943,21 @@ void setdrmdisp(struct drm_bo *bo)
     if (dev == NULL)
         return;
 
-    crtc_w = dev->mode.width;
-    crtc_h = dev->mode.height;
-    crtc_x = 0;
-    crtc_y = 0;
+    if (disp_crop)
+    {
+        crtc_w = sw;
+        crtc_h = sh;
+        crtc_x = (dev->mode.width - sw) / 2;
+        crtc_y = (dev->mode.height - sh) / 2;
+    }
+    else
+    {
+        /* Fullscreen */
+        crtc_w = dev->mode.width;
+        crtc_h = dev->mode.height;
+        crtc_x = 0;
+        crtc_y = 0;
+    }
 
     DRM_DEBUG("Display bo %d(%dx%d) at (%d,%d) %dx%d\n", fb, sw, sh,
              crtc_x, crtc_y, crtc_w, crtc_h);
@@ -1113,16 +1125,17 @@ void drm_flush(lv_disp_drv_t *disp_drv, const lv_area_t *area, lv_color_t *color
     lv_disp_flush_ready(disp_drv);
 }
 
-void disp_init(void)
+void disp_init(int hor_res, int ver_res)
 {
     int format = 0;
     int buf_w, buf_h;
     /*You code here*/
     drm_init(32);
 
-    lv_env_get_u32("lv_disp_width", &lcd_w, 0);
-    lv_env_get_u32("lv_disp_height", &lcd_h, 0);
+    lv_env_get_u32("lv_disp_width", &lcd_w, hor_res);
+    lv_env_get_u32("lv_disp_height", &lcd_h, ver_res);
     lv_env_get_u32("lv_disp_fps", &lcd_fps, 60);
+    lv_env_get_u32("lv_disp_crop", &disp_crop, 0);
 
     if(lcd_w == 0 || lcd_h == 0)
         getdrmresolve(&lcd_w, &lcd_h);
@@ -1187,7 +1200,7 @@ void drm_disp_drv_deinit(void) {
     disp_deinit();
 }
 
-void drm_disp_drv_init(int rot)
+void drm_disp_drv_init(int hor_res, int ver_res, int rot)
 {
     /*-------------------------
      * Initialize your display
@@ -1195,7 +1208,7 @@ void drm_disp_drv_init(int rot)
 #if USE_RGA
     disp_rot = rot;
 #endif
-    disp_init();
+    disp_init(hor_res, ver_res);
 
     /*-----------------------------
      * Create a buffer for drawing
