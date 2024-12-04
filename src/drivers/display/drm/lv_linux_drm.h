@@ -37,7 +37,7 @@ extern "C" {
 /**********************
  * GLOBAL PROTOTYPES
  **********************/
-lv_display_t * lv_drm_disp_create(int rot);
+lv_display_t * lv_drm_disp_create(int hor_res, int ver_res, int rot);
 int lv_drm_disp_delete(lv_display_t * disp);
 
 /**********************
