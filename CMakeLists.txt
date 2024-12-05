@@ -18,6 +18,16 @@ endif()
 
 set(LVGL_ROOT_DIR ${CMAKE_CURRENT_LIST_DIR})
 
+include(${CMAKE_CURRENT_LIST_DIR}/lv_conf_default.mk)
+if (EXISTS ${CMAKE_CURRENT_LIST_DIR}/lv_conf.mk)
+    include(${CMAKE_CURRENT_LIST_DIR}/lv_conf.mk)
+endif()
+
+configure_file(
+    ${PROJECT_SOURCE_DIR}/lv_conf.h.in
+    ${PROJECT_SOURCE_DIR}/lv_conf.h
+)
+
 if(ESP_PLATFORM)
   include(${CMAKE_CURRENT_LIST_DIR}/env_support/cmake/esp.cmake)
 elseif(MICROPY_DIR)
@@ -36,9 +46,9 @@ endif()
     For all compiled sources from outside the library (i.e. files which include lvgl headers) we need to use dllimport.
     We can do this by using CMakes INTERFACE and PRIVATE keyword.
   ]]
-if(MSVC AND BUILD_SHARED_LIBS)
-  target_compile_definitions(
-    lvgl
-    INTERFACE "LV_ATTRIBUTE_EXTERN_DATA=__declspec(dllimport)"
-    PRIVATE "LV_ATTRIBUTE_EXTERN_DATA=__declspec(dllexport)")
+if (MSVC)
+  target_compile_definitions(lvgl
+    INTERFACE LV_ATTRIBUTE_EXTERN_DATA=__declspec\(dllimport\)
+    PRIVATE LV_ATTRIBUTE_EXTERN_DATA=__declspec\(dllexport\)
+  )
 endif()
