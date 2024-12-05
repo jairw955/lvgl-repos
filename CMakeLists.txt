@@ -6,6 +6,16 @@ endif()
 
 set(LVGL_ROOT_DIR ${CMAKE_CURRENT_LIST_DIR})
 
+include(${CMAKE_CURRENT_LIST_DIR}/lv_conf_default.mk)
+if (EXISTS ${CMAKE_CURRENT_LIST_DIR}/lv_conf.mk)
+    include(${CMAKE_CURRENT_LIST_DIR}/lv_conf.mk)
+endif()
+
+configure_file(
+    ${PROJECT_SOURCE_DIR}/lv_conf.h.in
+    ${PROJECT_SOURCE_DIR}/lv_conf.h
+)
+
 if(ESP_PLATFORM)
   include(${CMAKE_CURRENT_LIST_DIR}/env_support/cmake/esp.cmake)
 elseif(ZEPHYR_BASE)
