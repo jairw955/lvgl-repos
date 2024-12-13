@@ -689,6 +689,41 @@ out:
     drmModeFreeObjectProperties (props);
 }
 
+static void configure_plane_blend_mode(drm_device_t *self, int plane_id, uint64_t mode)
+{
+    drmModeObjectPropertiesPtr props = NULL;
+    drmModePropertyPtr prop = NULL;
+    char *buf;
+    unsigned int i;
+
+    if (plane_id <= 0)
+        return;
+
+    if (drmSetClientCap (self->fd, DRM_CLIENT_CAP_ATOMIC, 1))
+        return;
+
+    props = drmModeObjectGetProperties (self->fd, plane_id, DRM_MODE_OBJECT_PLANE);
+    if (!props)
+        goto out;
+
+    for (i = 0; i < props->count_props; i++) {
+        prop = drmModeGetProperty (self->fd, props->props[i]);
+        if (prop && !strcmp (prop->name, "pixel blend mode"))
+          break;
+        drmModeFreeProperty (prop);
+        prop = NULL;
+    }
+
+    if (!prop)
+        goto out;
+
+    drmModeObjectSetProperty (self->fd, plane_id,
+          DRM_MODE_OBJECT_PLANE, props->props[i], mode);
+out:
+    drmModeFreeProperty (prop);
+    drmModeFreeObjectProperties (props);
+}
+
 static void drm_free(drm_device_t * dev)
 {
     int i;
@@ -768,6 +803,7 @@ static int drm_setup(drm_device_t *dev)
         goto err;
     }
     configure_plane_zpos(dev, plane->plane_id, 1);
+    configure_plane_blend_mode(dev, plane->plane_id, 1);
     LV_LOG_USER("Best plane: %d", plane->plane_id);
     dev->connector_id = conn->connector_id;
     dev->crtc_id = crtc->crtc_id;
