@@ -103,6 +103,13 @@ void lv_draw_sw_transform(lv_draw_unit_t * draw_unit, const lv_area_t * dest_are
 {
     LV_UNUSED(draw_unit);
     LV_UNUSED(sup);
+#if LV_USE_DRAW_RK_TRANSFORM
+    /* Check if rk tranform can handle this work */
+    int ret = lv_draw_rk_transform(draw_unit, dest_area, src_buf, src_w, src_h, src_stride,
+                                   draw_dsc, sup, src_cf, dest_buf);
+    if(ret == LV_RESULT_OK)
+        return;
+#endif
 
     point_transform_dsc_t tr_dsc;
     tr_dsc.angle = -draw_dsc->rotation;
