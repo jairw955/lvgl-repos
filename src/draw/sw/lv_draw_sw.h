@@ -28,6 +28,10 @@ extern "C" {
 #include "../lv_draw_line.h"
 #include "../lv_draw_arc.h"
 
+#if LV_USE_DRAW_RK_TRANSFORM
+#include "lv_draw_rk_transform.h"
+#endif
+
 /*********************
  *      DEFINES
  *********************/
