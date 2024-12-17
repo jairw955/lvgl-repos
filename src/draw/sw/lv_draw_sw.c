@@ -159,10 +159,18 @@ void lv_draw_sw_init(void)
 #if LV_USE_VECTOR_GRAPHIC && LV_USE_THORVG
     tvg_engine_init(TVG_ENGINE_SW, 0);
 #endif
+
+#if LV_USE_DRAW_RK_TRANSFORM
+    lv_draw_rk_transform_init();
+#endif
 }
 
 void lv_draw_sw_deinit(void)
 {
+#if LV_USE_DRAW_RK_TRANSFORM
+    lv_draw_rk_transform_deinit();
+#endif
+
 #if LV_USE_VECTOR_GRAPHIC && LV_USE_THORVG
     tvg_engine_term(TVG_ENGINE_SW);
 #endif

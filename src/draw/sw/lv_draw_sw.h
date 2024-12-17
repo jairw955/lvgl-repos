@@ -23,6 +23,10 @@ extern "C" {
 
 #include "../../draw/lv_draw_vector.h"
 
+#if LV_USE_DRAW_RK_TRANSFORM
+#include "lv_draw_rk_transform.h"
+#endif
+
 /*********************
  *      DEFINES
  *********************/
