@@ -204,10 +204,10 @@ void lv_draw_sw_transform(lv_draw_unit_t * draw_unit, const lv_area_t * dest_are
         xs_step_256 = 0;
         ys_step_256_original = 0;
         if(dest_w > 1) {
-            xs_step_256 = (256 * xs_diff) / (dest_w - 1);
+            xs_step_256 = (xs_diff << 8) / (dest_w - 1);
         }
         if(dest_h > 1) {
-            ys_step_256_original = (256 * ys_diff) / (dest_h - 1);
+            ys_step_256_original = (ys_diff << 8) / (dest_h - 1);
         }
 
         xs_ups = xs1_ups + 0x80;
@@ -230,8 +230,8 @@ void lv_draw_sw_transform(lv_draw_unit_t * draw_unit, const lv_area_t * dest_are
             xs_step_256 = 0;
             ys_step_256 = 0;
             if(dest_w > 1) {
-                xs_step_256 = (256 * xs_diff) / (dest_w - 1);
-                ys_step_256 = (256 * ys_diff) / (dest_w - 1);
+                xs_step_256 = (xs_diff << 8) / (dest_w - 1);
+                ys_step_256 = (ys_diff << 8) / (dest_w - 1);
             }
 
             xs_ups = xs1_ups + 0x80;
@@ -852,8 +852,8 @@ static void transform_point_upscaled(point_transform_dsc_t * t, int32_t xin, int
                                      int32_t * yout)
 {
     if(t->angle == 0 && t->scale_x == LV_SCALE_NONE && t->scale_y == LV_SCALE_NONE) {
-        *xout = xin * 256;
-        *yout = yin * 256;
+        *xout = xin << 8;
+        *yout = yin << 8;
         return;
     }
 
@@ -861,16 +861,16 @@ static void transform_point_upscaled(point_transform_dsc_t * t, int32_t xin, int
     yin -= t->pivot.y;
 
     if(t->angle == 0) {
-        *xout = ((int32_t)(xin * 256 * 256 / t->scale_x)) + (t->pivot_x_256);
-        *yout = ((int32_t)(yin * 256 * 256 / t->scale_y)) + (t->pivot_y_256);
+        *xout = ((int32_t)((xin << 16) / t->scale_x)) + (t->pivot_x_256);
+        *yout = ((int32_t)((yin << 16) / t->scale_y)) + (t->pivot_y_256);
     }
     else if(t->scale_x == LV_SCALE_NONE && t->scale_y == LV_SCALE_NONE) {
         *xout = ((t->cosma * xin - t->sinma * yin) >> 2) + (t->pivot_x_256);
         *yout = ((t->sinma * xin + t->cosma * yin) >> 2) + (t->pivot_y_256);
     }
     else {
-        *xout = (((t->cosma * xin - t->sinma * yin) * 256 / t->scale_x) >> 2) + (t->pivot_x_256);
-        *yout = (((t->sinma * xin + t->cosma * yin) * 256 / t->scale_y) >> 2) + (t->pivot_y_256);
+        *xout = ((((t->cosma * xin - t->sinma * yin) << 8) / t->scale_x) >> 2) + (t->pivot_x_256);
+        *yout = ((((t->sinma * xin + t->cosma * yin) << 8) / t->scale_y) >> 2) + (t->pivot_y_256);
     }
 }
 
