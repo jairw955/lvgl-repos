@@ -120,7 +120,20 @@
 
     /* Enable native helium assembly to be compiled */
     #define LV_USE_NATIVE_HELIUM_ASM    @BR2_LV_USE_NATIVE_HELIUM_ASM@
-    
+
+    /* Enable RK transform in lv_draw_sw_transform for better performance */
+    #define LV_USE_DRAW_RK_TRANSFORM    @BR2_LV_USE_DRAW_RK_TRANSFORM@
+
+    #if LV_USE_DRAW_RK_TRANSFORM
+        /* 0: use nearest interpolation
+         * 1: use bilinear interpolation */
+        #define LV_DRAW_RK_TRANSFORM_SCALER_METHOD @BR2_LV_DRAW_RK_TRANSFORM_SCALER_METHOD@
+
+        /* Set the cores of scaler.
+         * -1 means according to the number of cpu */
+        #define LV_DRAW_RK_TRANSFORM_SCALER_CORES @BR2_LV_DRAW_RK_TRANSFORM_SCALER_CORES@
+    #endif
+
     /* 0: use a simple renderer capable of drawing only simple rectangles with gradient, images, texts, and straight lines only
      * 1: use a complex renderer capable of drawing rounded corners, shadow, skew lines, and arcs too */
     #define LV_DRAW_SW_COMPLEX          @BR2_LV_DRAW_SW_COMPLEX@
