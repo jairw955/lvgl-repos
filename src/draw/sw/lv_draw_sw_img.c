@@ -33,7 +33,7 @@
 /*********************
  *      DEFINES
  *********************/
-#define MAX_BUF_SIZE (uint32_t) (4 * lv_display_get_horizontal_resolution(lv_refr_get_disp_refreshing()) * lv_color_format_get_size(lv_display_get_color_format(lv_refr_get_disp_refreshing())))
+#define MAX_BUF_SIZE (uint32_t) (lv_display_get_vertical_resolution(lv_refr_get_disp_refreshing()) * lv_display_get_horizontal_resolution(lv_refr_get_disp_refreshing()) * lv_color_format_get_size(lv_display_get_color_format(lv_refr_get_disp_refreshing())))
 
 #ifndef LV_DRAW_SW_IMAGE
     #define LV_DRAW_SW_IMAGE(...)   LV_RESULT_INVALID
