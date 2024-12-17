@@ -29,6 +29,10 @@ extern "C" {
 #include "lv_draw_sw_utils.h"
 #include "blend/lv_draw_sw_blend.h"
 
+#if LV_USE_DRAW_RK_TRANSFORM
+#include "lv_draw_rk_transform.h"
+#endif
+
 /*********************
  *      DEFINES
  *********************/
