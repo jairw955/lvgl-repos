@@ -56,6 +56,7 @@ typedef struct {
  */
 typedef struct lv_profiler_builtin_ctx_t {
     lv_profiler_builtin_item_t * item_arr; /**< Pointer to an array of profiler items */
+    uint32_t tick_fix;
     uint32_t item_num;                     /**< Number of profiler items in the array */
     uint32_t cur_index;                    /**< Index of the current profiler item */
     lv_profiler_builtin_config_t config;   /**< Configuration for the built-in profiler */
@@ -192,7 +193,7 @@ void lv_profiler_builtin_write(const char * func, char tag)
     lv_profiler_builtin_item_t * item = &profiler_ctx->item_arr[profiler_ctx->cur_index];
     item->func = func;
     item->tag = tag;
-    item->tick = profiler_ctx->config.tick_get_cb();
+    item->tick = profiler_ctx->config.tick_get_cb() - profiler_ctx->tick_fix;
 
 #if LV_USE_OS
     item->tid = profiler_ctx->config.tid_get_cb();
@@ -230,9 +231,11 @@ static void flush_no_lock(void)
         return;
     }
 
+    uint32_t start_tick, end_tick;
     uint32_t cur = 0;
     char buf[LV_PROFILER_STR_MAX_LEN];
     uint32_t tick_per_sec = profiler_ctx->config.tick_per_sec;
+    start_tick = profiler_ctx->config.tick_get_cb();
     while(cur < profiler_ctx->cur_index) {
         lv_profiler_builtin_item_t * item = &profiler_ctx->item_arr[cur++];
         uint32_t sec = item->tick / tick_per_sec;
@@ -257,6 +260,8 @@ static void flush_no_lock(void)
 #endif
         profiler_ctx->config.flush_cb(buf);
     }
+    end_tick = profiler_ctx->config.tick_get_cb();
+    profiler_ctx->tick_fix += (end_tick - start_tick);
 }
 
 #endif /*LV_USE_PROFILER_BUILTIN*/
