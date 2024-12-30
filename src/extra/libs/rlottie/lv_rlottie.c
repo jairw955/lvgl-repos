@@ -10,6 +10,9 @@
 #if LV_USE_RLOTTIE
 
 #include <rlottie_capi.h>
+#if LV_USE_GPU_SDL
+#include "../../../draw/sdl/lv_draw_sdl_texture_cache.h"
+#endif
 
 /*********************
 *      DEFINES
@@ -275,6 +278,10 @@ static void next_frame_task_cb(lv_timer_t * t)
 
 #if LV_COLOR_DEPTH == 16
     convert_to_rgba5658(rlottie->allocated_buf, rlottie->imgdsc.header.w, rlottie->imgdsc.header.h);
+#endif
+
+#if LV_USE_GPU_SDL
+    lv_draw_sdl_texture_cache_update(obj, &rlottie->imgdsc, 0);
 #endif
 
     lv_obj_invalidate(obj);
