@@ -97,6 +97,8 @@ bool lv_draw_sdl_texture_cache_put_advanced(lv_draw_sdl_ctx_t * ctx, const void 
 lv_draw_sdl_cache_key_head_img_t * lv_draw_sdl_texture_img_key_create(const void * src, int32_t frame_id,
                                                                       size_t * size);
 
+void lv_draw_sdl_texture_cache_update(lv_obj_t *obj, const void * src, int frame_id);
+
 /**********************
  *      MACROS
  **********************/

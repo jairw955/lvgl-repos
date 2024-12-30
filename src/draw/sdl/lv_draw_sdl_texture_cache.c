@@ -142,6 +142,29 @@ lv_draw_sdl_cache_key_head_img_t * lv_draw_sdl_texture_img_key_create(const void
     return (lv_draw_sdl_cache_key_head_img_t *) key;
 }
 
+void lv_draw_sdl_texture_cache_update(lv_obj_t *obj, const void * src, int frame_id)
+{
+    lv_disp_t * disp = lv_obj_get_disp(obj);
+    lv_draw_sdl_ctx_t * ctx = (lv_draw_sdl_ctx_t *) disp->driver->draw_ctx;
+    lv_draw_sdl_cache_key_head_img_t * key;
+    size_t size;
+    bool found;
+
+    key = lv_draw_sdl_texture_img_key_create(src, 0, &size);
+    if (!key) return;
+
+    SDL_Texture * texture = lv_draw_sdl_texture_cache_get(ctx, key, size, &found);
+    _lv_img_cache_entry_t * cdsc = _lv_img_cache_open(src, lv_color_white(), frame_id);
+
+    if (texture && cdsc) {
+        lv_img_decoder_dsc_t * dsc = &cdsc->dec_dsc;
+        SDL_UpdateTexture(texture, NULL, dsc->img_data, dsc->header.w * LV_COLOR_DEPTH / 8);
+        lv_img_decoder_close(dsc);
+    }
+
+    SDL_free(key);
+}
+
 static void draw_cache_free_value(draw_cache_value_t * value)
 {
     if(value->texture && !(value->flags & LV_DRAW_SDL_CACHE_FLAG_MANAGED)) {
