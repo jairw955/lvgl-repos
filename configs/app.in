@@ -1,0 +1,8 @@
+DEMO_SEL=${ext:-lv_demo}
+
+export DEMO_CFG="-DLV_DRV_USE_SDL_GPU=y -DPC_SIMULATOR=y"
+case $DEMO_SEL in
+    lv_demo)
+    export DEMO_CFG=$DEMO_CFG" -DLV_DEMO=y -DLVGL_DEMO_MUSIC=y"
+    ;;
+esac

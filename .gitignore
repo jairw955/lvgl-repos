@@ -1,0 +1,6 @@
+.config
+.config.old
+.version
+tags
+bin/
+lib/

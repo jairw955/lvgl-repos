@@ -1,0 +1,16 @@
+[submodule "app"]
+	path = app
+	url = https://github.com/jairw955/lvgl-repos.git
+	branch = app
+[submodule "lv_drivers"]
+	path = lvgl8/lv_drivers
+	url = https://github.com/jairw955/lvgl-repos.git
+	branch = lv_drivers-8.3.0
+[submodule "lvgl8"]
+	path = lvgl8/lvgl
+	url = https://github.com/jairw955/lvgl-repos.git
+	branch = lvgl-8.4.0
+[submodule "lvgl9"]
+	path = lvgl9
+	url = https://github.com/jairw955/lvgl-repos.git
+	branch = lvgl-9.1.0
