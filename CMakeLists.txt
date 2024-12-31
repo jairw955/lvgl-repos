@@ -39,13 +39,14 @@ if (LV_DRV_USE_RKADK)
 endif()
 
 add_definitions(-g -DLV_CONF_INCLUDE_SIMPLE)
+include_directories(${CMAKE_SOURCE_DIR}/../../lib/lvgl8/include)
 include_directories(${CMAKE_SYSROOT}/usr/include/libdrm/)
 
 target_include_directories(lv_drivers SYSTEM PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
 find_package(PkgConfig)
 pkg_check_modules(PKG_WAYLAND wayland-client wayland-cursor wayland-protocols xkbcommon)
-target_link_libraries(lv_drivers PUBLIC lvgl ${PKG_WAYLAND_LIBRARIES})
+target_link_libraries(lv_drivers PUBLIC ${CMAKE_SOURCE_DIR}/../../lib/lvgl8/lib/liblvgl.so ${PKG_WAYLAND_LIBRARIES})
 
 if (LV_DRV_USE_RGA)
     target_link_libraries(lv_drivers PUBLIC rga)
