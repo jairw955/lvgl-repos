@@ -39,6 +39,7 @@ if (LV_DRV_USE_RKADK)
 endif()
 
 add_definitions(-g -DLV_CONF_INCLUDE_SIMPLE)
+include_directories(${CMAKE_SOURCE_DIR}/../../lib/lvgl8/include)
 include_directories(${CMAKE_SYSROOT}/usr/include/libdrm/)
 
 target_include_directories(lv_drivers SYSTEM PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
