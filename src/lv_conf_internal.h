@@ -22,6 +22,7 @@
 #define LV_STDLIB_CLIB              1
 #define LV_STDLIB_MICROPYTHON       2
 #define LV_STDLIB_RTTHREAD          3
+#define LV_STDLIB_MIMALLOC          4
 #define LV_STDLIB_CUSTOM            255
 
 #define LV_DRAW_SW_ASM_NONE         0
