@@ -9,6 +9,7 @@
 #include "../lv_draw.h"
 #if LV_USE_DRAW_SW
 
+#include <unistd.h>
 #include "../../core/lv_refr.h"
 #include "lv_draw_sw.h"
 #include "../../display/lv_display_private.h"
@@ -129,13 +130,21 @@ static void rotate270_rgb565(const uint16_t * src, uint16_t * dst, int32_t srcWi
 
 void lv_draw_sw_init(void)
 {
+    int unit_cnt = LV_DRAW_SW_DRAW_UNIT_CNT;
 
 #if LV_DRAW_SW_COMPLEX == 1
     lv_draw_sw_mask_init();
 #endif
 
+    if (unit_cnt <= 0)
+        unit_cnt = sysconf(_SC_NPROCESSORS_CONF);
+    if (unit_cnt <= 0) {
+        LV_LOG_WARN("Invalid number of draw unit");
+        unit_cnt = 1;
+    }
+
     uint32_t i;
-    for(i = 0; i < LV_DRAW_SW_DRAW_UNIT_CNT; i++) {
+    for(i = 0; i < unit_cnt; i++) {
         lv_draw_sw_unit_t * draw_sw_unit = lv_draw_create_unit(sizeof(lv_draw_sw_unit_t));
         draw_sw_unit->base_unit.dispatch_cb = dispatch;
         draw_sw_unit->base_unit.evaluate_cb = evaluate;
