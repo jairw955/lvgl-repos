@@ -1,6 +1,17 @@
-# Kconfig file for LVGL v9.1.0
+# Kconfig file for LVGL v9.2.2 and LVGL v8.4.0
+choice BR2_PACKAGE_LVGL_VERSION
+	prompt "LVGL Version."
+	default BR2_PACKAGE_LVGL_VERSION_8
+	help
+	  Select LVGL version.
 
-menu "LVGL v9.1.0 configuration"
+	config BR2_PACKAGE_LVGL_VERSION_8
+		bool "v8.x"
+	config BR2_PACKAGE_LVGL_VERSION_9
+		bool "v9.x"
+endchoice
+
+menu "LVGL configuration"
 
 	# Define CONFIG_LV_CONF_SKIP so we can use LVGL
 	# without lv_conf.h file, the lv_conf_internal.h and
@@ -15,13 +26,14 @@ menu "LVGL v9.1.0 configuration"
 	menu "Color Settings"
 		choice BR2_LV_COLOR_DEPTH
 			prompt "Color depth"
-			default BR2_LV_COLOR_DEPTH_16
+			default BR2_LV_COLOR_DEPTH_32
 			help
 				Color depth to be used.
 
 			config BR2_LV_COLOR_DEPTH_32
 				bool "32: XRGB8888"
 			config BR2_LV_COLOR_DEPTH_24
+				depends on BR2_PACKAGE_LVGL_VERSION_9
 				bool "24: RGB888"
 			config BR2_LV_COLOR_DEPTH_16
 				bool "16: RGB565"
@@ -38,103 +50,50 @@ menu "LVGL v9.1.0 configuration"
 			default 16 if BR2_LV_COLOR_DEPTH_16
 			default 24 if BR2_LV_COLOR_DEPTH_24
 			default 32 if BR2_LV_COLOR_DEPTH_32
+
+		config BR2_LV_COLOR_16_SWAP
+			bool "Swap the 2 bytes of RGB565 color. Useful if the display has an 8-bit interface (e.g. SPI)."
+			depends on BR2_LV_COLOR_DEPTH_16
+			depends on BR2_PACKAGE_LVGL_VERSION_8
+
+		config BR2_LV_COLOR_SCREEN_TRANSP
+			bool "Enable more complex drawing routines to manage screens transparency."
+			depends on BR2_LV_COLOR_DEPTH_32
+			depends on BR2_PACKAGE_LVGL_VERSION_8
+			help
+				Can be used if the UI is above another layer, e.g. an OSD menu or video player.
+				Requires `LV_COLOR_DEPTH = 32` colors and the screen's `bg_opa` should be set to
+				non LV_OPA_COVER value
+
+		config BR2_LV_COLOR_CHROMA_KEY_HEX
+			hex "Images pixels with this color will not be drawn (if they are chroma keyed)."
+			depends on BR2_PACKAGE_LVGL_VERSION_8
+			range 0x000000 0xFFFFFF
+			default 0x00FF00
+			help
+				See misc/lv_color.h for some color values examples.
 	endmenu
 
-	menu "Memory Settings"
-		choice
-			prompt "Malloc functions source"
-			default BR2_LV_USE_BUILTIN_MALLOC
-
-		config BR2_LV_USE_BUILTIN_MALLOC
-			bool "LVGL's built in implementation"
-
-		config BR2_LV_USE_CLIB_MALLOC
-			bool "Standard C functions malloc/realloc/free"
-
-		config BR2_LV_USE_MICROPYTHON_MALLOC
-			bool "MicroPython functions malloc/realloc/free"
-
-		config BR2_LV_USE_RTTHREAD_MALLOC
-			bool "RTThread functions malloc/realloc/free"
-
-		config BR2_LV_USE_CUSTOM_MALLOC
-			bool "Implement the functions externally"
-
-		endchoice # "Malloc functions"
-
-		config BR2_LV_USE_STDLIB_MALLOC
-			int
-			default 0 if BR2_LV_USE_BUILTIN_MALLOC
-			default 1 if BR2_LV_USE_CLIB_MALLOC
-			default 2 if BR2_LV_USE_MICROPYTHON_MALLOC
-			default 3 if BR2_LV_USE_RTTHREAD_MALLOC
-			default 255 if BR2_LV_USE_CUSTOM_MALLOC
-
-		choice
-			prompt "String functions source"
-			default BR2_LV_USE_BUILTIN_STRING
-
-		config BR2_LV_USE_BUILTIN_STRING
-			bool "LVGL's built in implementation"
-
-		config BR2_LV_USE_CLIB_STRING
-			bool "Standard C functions memcpy/memset/strlen/strcpy"
-
-		config BR2_LV_USE_CUSTOM_STRING
-			bool "Implement the functions externally"
-
-		endchoice # "String functions"
-
-		config BR2_LV_USE_STDLIB_STRING
-			int
-			default 0 if BR2_LV_USE_BUILTIN_STRING
-			default 1 if BR2_LV_USE_CLIB_STRING
-			default 255 if BR2_LV_USE_CUSTOM_STRING
-
-		choice
-			prompt "Sprintf functions source"
-			default BR2_LV_USE_BUILTIN_SPRINTF
-
-		config BR2_LV_USE_BUILTIN_SPRINTF
-			bool "LVGL's built in implementation"
-
-		config BR2_LV_USE_CLIB_SPRINTF
-			bool "Standard C functions vsnprintf"
-
-		config BR2_LV_USE_CUSTOM_SPRINTF
-			bool "Implement the functions externally"
-
-		endchoice # "Sprintf functions"
-
-		config BR2_LV_USE_STDLIB_SPRINTF
-			int
-			default 0 if BR2_LV_USE_BUILTIN_SPRINTF
-			default 1 if BR2_LV_USE_CLIB_SPRINTF
-			default 255 if BR2_LV_USE_CUSTOM_SPRINTF
-
-		config BR2_LV_MEM_SIZE_KILOBYTES
-			int "Size of the memory used by `lv_malloc()` in kilobytes (>= 2kB)"
-			default 64
-			depends on BR2_LV_USE_BUILTIN_MALLOC
-
-		config BR2_LV_MEM_POOL_EXPAND_SIZE_KILOBYTES
-			int "Size of the memory expand for `lv_malloc()` in kilobytes"
-			default 0
-			depends on BR2_LV_USE_BUILTIN_MALLOC
-
-		config BR2_LV_MEM_ADR
-			hex "Address for the memory pool instead of allocating it as a normal array"
-			default 0x0
-			depends on BR2_LV_USE_BUILTIN_MALLOC
-
+	menu "Memory settings"
+		if BR2_PACKAGE_LVGL_VERSION_8
+			source "configs/8.4.0/Config.in.memory"
+		endif
+		if BR2_PACKAGE_LVGL_VERSION_9
+			source "configs/9.2.2/Config.in.memory"
+		endif
 	endmenu
 
 	menu "HAL Settings"
 		config BR2_LV_DEF_REFR_PERIOD
 			int "Default refresh period (ms)"
-			default 33
+			default 16
 			help
 				Default display refresh, input device read and animation step period.
+
+		config BR2_LV_INDEV_DEF_READ_PERIOD
+			int "Input device read period [ms]."
+			depends on BR2_PACKAGE_LVGL_VERSION_8
+			default 30
 
 		config BR2_LV_DPI_DEF
 			int "Default Dots Per Inch (in px/inch)"
@@ -142,12 +101,23 @@ menu "LVGL v9.1.0 configuration"
 			help
 				Used to initialize default sizes such as widgets sized, style paddings.
 				(Not so important, you can adjust it to modify default sizes and spaces)
+
+		config BR2_LV_TICK_CUSTOM
+			bool "Use a custom tick source"
+			depends on BR2_PACKAGE_LVGL_VERSION_8
+
+		config BR2_LV_TICK_CUSTOM_INCLUDE
+			string "Header for the system time function"
+			default "src/misc/lv_systick.h"
+			depends on BR2_LV_TICK_CUSTOM
+			depends on BR2_PACKAGE_LVGL_VERSION_8
 	endmenu
 
 	menu "Operating System (OS)"
+		depends on BR2_PACKAGE_LVGL_VERSION_9
 		choice BR2_LV_USE_OS
 			prompt "Default operating system to use"
-			default BR2_LV_OS_NONE
+			default BR2_LV_OS_PTHREAD
 
 			config BR2_LV_OS_NONE
 				bool "0: NONE"
@@ -161,6 +131,8 @@ menu "LVGL v9.1.0 configuration"
 				bool "4: RTTHREAD"
 			config BR2_LV_OS_WINDOWS
 				bool "5: WINDOWS"
+			config BR2_LV_OS_MQX
+				bool "6: MQX"
 			config BR2_LV_OS_CUSTOM
 				bool "255: CUSTOM"
 		endchoice
@@ -173,210 +145,31 @@ menu "LVGL v9.1.0 configuration"
 			default 3 if BR2_LV_OS_CMSIS_RTOS2
 			default 4 if BR2_LV_OS_RTTHREAD
 			default 5 if BR2_LV_OS_WINDOWS
+			default 6 if BR2_LV_OS_MQX
 			default 255 if BR2_LV_OS_CUSTOM
 
 		config BR2_LV_OS_CUSTOM_INCLUDE
 			string "Custom OS include header"
 			default "stdint.h"
 			depends on BR2_LV_OS_CUSTOM
+
+        config BR2_LV_USE_FREERTOS_TASK_NOTIFY
+            bool "Use RTOS task with a direct notification for synchronization"
+            default y
+            depends on BR2_LV_OS_FREERTOS
+        help
+            Unblocking an RTOS task with a direct notification is 45% faster and uses less RAM
+            than unblocking a task using an intermediary object such as a binary semaphore.
+            RTOS task notifications can only be used when there is only one task that can be the recipient of the event.
 	endmenu
 
 	menu "Rendering Configuration"
-		config BR2_LV_DRAW_BUF_STRIDE_ALIGN
-			int "Buffer stride alignment"
-			default 1
-		help
-			Align the stride of all layers and images to this bytes.
-
-		config BR2_LV_DRAW_BUF_ALIGN
-			int "Buffer address alignment"
-			default 4
-		help
-			Align the start address of draw_buf addresses to this bytes.
-
-		config BR2_LV_DRAW_LAYER_SIMPLE_BUF_SIZE
-			int "Optimal size to buffer the widget with opacity"
-			default 24576
-			depends on BR2_LV_USE_DRAW_SW
-			help
-				If a widget has `style_opa < 255` (not `bg_opa`, `text_opa` etc) or not NORMAL blend mode
-				it is buffered into a "simple" layer before rendering. The widget can be buffered in smaller chunks.
-				"Transformed layers" (if `transform_angle/zoom` are set) use larger buffers and can't be drawn in chunks.
-
-		config BR2_LV_USE_DRAW_SW
-			bool "Enable software rendering"
-			default y
-		help
-			Required to draw anything on the screen.
-
-		config BR2_LV_DRAW_SW_DRAW_UNIT_CNT
-			int "Number of draw units"
-			default 1
-			depends on BR2_LV_USE_DRAW_SW
-			help
-				> 1 requires an operating system enabled in `LV_USE_OS`
-				> 1 means multiply threads will render the screen in parallel
-
-		config BR2_LV_USE_DRAW_ARM2D_SYNC
-			bool "Enable Arm's 2D image processing library (Arm-2D) for all Cortex-M processors"
-			default n
-			depends on BR2_LV_USE_DRAW_SW
-			help
-				Must deploy arm-2d library to your project and add include PATH for "arm_2d.h".
-
-		config BR2_LV_USE_NATIVE_HELIUM_ASM
-			bool "Enable native helium assembly"
-			default y
-			depends on BR2_LV_USE_DRAW_SW
-			help
-				Disabling this allows arm2d to work on its own (for testing only)
-
-		config BR2_LV_USE_DRAW_RK_TRANSFORM
-			bool "Enable rk transform"
-			default n
-			depends on BR2_LV_USE_DRAW_SW
-			help
-				Enable rk transform.
-
-		config BR2_LV_USE_DRAW_RGA
-			bool "Enable RGA in software renderer"
-			default n
-			depends on BR2_LV_USE_DRAW_SW
-			help
-				Enable RGA in software renderer.
-
-		config BR2_LV_DRAW_SW_COMPLEX
-			bool "Enable complex draw engine"
-			default y
-			depends on BR2_LV_USE_DRAW_SW
-			help
-				0: use a simple renderer capable of drawing only simple rectangles with gradient, images, texts, and straight lines only,
-				1: use a complex renderer capable of drawing rounded corners, shadow, skew lines, and arcs too.
-
-		config BR2_LV_DRAW_SW_SHADOW_CACHE_SIZE
-			int "Allow buffering some shadow calculation"
-			depends on BR2_LV_DRAW_SW_COMPLEX
-			default 0
-			help
-				LV_DRAW_SW_SHADOW_CACHE_SIZE is the max shadow size to buffer, where
-				shadow size is `shadow_width + radius`.
-				Caching has BR2_LV_DRAW_SW_SHADOW_CACHE_SIZE^2 RAM cost.
-
-		config BR2_LV_DRAW_SW_CIRCLE_CACHE_SIZE
-			int "Set number of maximally cached circle data"
-			depends on BR2_LV_DRAW_SW_COMPLEX
-			default 4
-			help
-				The circumference of 1/4 circle are saved for anti-aliasing
-				radius * 4 bytes are used per circle (the most often used
-				radiuses are saved).
-				Set to 0 to disable caching.
-
-		choice BR2_LV_USE_DRAW_SW_ASM
-			prompt "Asm mode in sw draw"
-			default BR2_LV_DRAW_SW_ASM_NEON if BR2_ARM_CPU_HAS_NEON && BR2_ARM_CPU_ARMV7A
-			default BR2_LV_DRAW_SW_ASM_NONE
-			depends on BR2_LV_USE_DRAW_SW
-			help
-				ASM mode to be used
-
-			config BR2_LV_DRAW_SW_ASM_NONE
-				bool "0: NONE"
-			config BR2_LV_DRAW_SW_ASM_NEON
-				bool "1: NEON"
-			config BR2_LV_DRAW_SW_ASM_HELIUM
-				bool "2: HELIUM"
-			config BR2_LV_DRAW_SW_ASM_CUSTOM
-				bool "255: CUSTOM"
-		endchoice
-
-		config BR2_LV_USE_DRAW_SW_ASM
-			int
-			default 0 if BR2_LV_DRAW_SW_ASM_NONE
-			default 1 if BR2_LV_DRAW_SW_ASM_NEON
-			default 2 if BR2_LV_DRAW_SW_ASM_HELIUM
-			default 255 if BR2_LV_DRAW_SW_ASM_CUSTOM
-
-		config BR2_LV_DRAW_SW_ASM_CUSTOM_INCLUDE
-			string "Set the custom asm include file"
-			default ""
-			depends on BR2_LV_DRAW_SW_ASM_CUSTOM
-
-		config BR2_LV_USE_DRAW_VGLITE
-			bool "Use NXP's VG-Lite GPU on iMX RTxxx platforms"
-			default n
-
-		config BR2_LV_USE_VGLITE_BLIT_SPLIT
-			bool "Enable blit quality degradation workaround recommended for screen's dimension > 352 pixels"
-			depends on BR2_LV_USE_DRAW_VGLITE
-			default n
-
-		config BR2_LV_USE_VGLITE_DRAW_ASYNC
-			bool "Enable VGLite draw async"
-			depends on BR2_LV_USE_DRAW_VGLITE && BR2_LV_USE_OS > 0
-			default y
-			help
-				Queue multiple tasks and flash them once to the GPU.
-
-		config BR2_LV_USE_VGLITE_ASSERT
-			bool "Enable VGLite asserts"
-			default n
-			depends on BR2_LV_USE_DRAW_VGLITE
-
-		config BR2_LV_USE_DRAW_PXP
-			bool "Use NXP's PXP on iMX RTxxx platforms"
-			default n
-
-		config BR2_LV_USE_PXP_ASSERT
-			bool "Enable PXP asserts"
-			default n
-			depends on BR2_LV_USE_DRAW_PXP
-
-		config BR2_LV_USE_DRAW_DAVE2D
-			bool "Use Renesas Dave2D on RA platforms"
-			default n
-
-		config BR2_LV_USE_DRAW_SDL
-			bool "Draw using cached SDL textures"
-			default n
-			depends on BR2_LV_USE_SDL
-			select BR2_PACKAGE_SDL2_IMAGE
-			help
-				Uses SDL renderer API
-
-		config BR2_LV_USE_DRAW_VG_LITE
-			bool "Use VG-Lite GPU"
-
-		config BR2_LV_VG_LITE_USE_GPU_INIT
-			bool "Enable VG-Lite custom external 'gpu_init()' function"
-			default n
-			depends on BR2_LV_USE_DRAW_VG_LITE
-
-		config BR2_LV_VG_LITE_USE_ASSERT
-			bool "Enable VG-Lite assert"
-			default n
-			depends on BR2_LV_USE_DRAW_VG_LITE
-
-		config BR2_LV_VG_LITE_FLUSH_MAX_COUNT
-			int "VG-Lite flush commit trigger threshold"
-			default 8
-			depends on BR2_LV_USE_DRAW_VG_LITE
-			help
-				GPU will try to batch these many draw tasks
-
-		config BR2_LV_VG_LITE_USE_BOX_SHADOW
-			bool "Enable border to simulate shadow"
-			default n
-			depends on BR2_LV_USE_DRAW_VG_LITE
-			help
-				which usually improves performance,
-				but does not guarantee the same rendering quality as the software.
-
-		config BR2_LV_USE_VECTOR_GRAPHIC
-			bool "Use Vector Graphic APIs"
-			default n
-			help
-				Enable drawing support vector graphic APIs.
+		if BR2_PACKAGE_LVGL_VERSION_8
+			source "configs/8.4.0/Config.in.rendering"
+		endif
+		if BR2_PACKAGE_LVGL_VERSION_9
+			source "configs/9.2.2/Config.in.rendering"
+		endif
 	endmenu
 
 	menu "Feature Configuration"
@@ -386,36 +179,35 @@ menu "LVGL v9.1.0 configuration"
 
 			choice
 				bool "Default log verbosity" if BR2_LV_USE_LOG
-				default BR2_LV_LOG_LEVEL_WARN_V9
+				default BR2_LV_LOG_LEVEL_WARN
 				help
 					Specify how important log should be added.
 
-				config BR2_LV_LOG_LEVEL_TRACE_V9
+				config BR2_LV_LOG_LEVEL_TRACE
 					bool "[Trace]A lot of logs to give detailed information"
-				config BR2_LV_LOG_LEVEL_INFO_V9
+				config BR2_LV_LOG_LEVEL_INFO
 					bool "[Info]Log important events"
-				config BR2_LV_LOG_LEVEL_WARN_V9
+				config BR2_LV_LOG_LEVEL_WARN
 					bool "[Warn]Log if something unwanted happened but didn't cause a problem"
-				config BR2_LV_LOG_LEVEL_ERROR_V9
+				config BR2_LV_LOG_LEVEL_ERROR
 					bool "[Error]Only critical issues, when the system may fail"
-				config BR2_LV_LOG_LEVEL_USER_V9
+				config BR2_LV_LOG_LEVEL_USER
 					bool "[User]Only logs added by the user"
-				config BR2_LV_LOG_LEVEL_NONE_V9
+				config BR2_LV_LOG_LEVEL_NONE
 					bool "[None]Do not log anything"
 			endchoice
 
 			config BR2_LV_LOG_LEVEL
 				int
-				default 0 if BR2_LV_LOG_LEVEL_TRACE_V9
-				default 1 if BR2_LV_LOG_LEVEL_INFO_V9
-				default 2 if BR2_LV_LOG_LEVEL_WARN_V9
-				default 3 if BR2_LV_LOG_LEVEL_ERROR_V9
-				default 4 if BR2_LV_LOG_LEVEL_USER_V9
-				default 5 if BR2_LV_LOG_LEVEL_NONE_V9
+				default 0 if BR2_LV_LOG_LEVEL_TRACE
+				default 1 if BR2_LV_LOG_LEVEL_INFO
+				default 2 if BR2_LV_LOG_LEVEL_WARN
+				default 3 if BR2_LV_LOG_LEVEL_ERROR
+				default 4 if BR2_LV_LOG_LEVEL_USER
+				default 5 if BR2_LV_LOG_LEVEL_NONE
 
 			config BR2_LV_LOG_PRINTF
-				bool "Print the log with 'printf'"
-				depends on BR2_LV_USE_LOG
+				bool "Print the log with 'printf'" if BR2_LV_USE_LOG
 				help
 					Use printf for log output.
 					If not set the user needs to register a callback with `lv_log_register_print_cb`.
@@ -423,12 +215,12 @@ menu "LVGL v9.1.0 configuration"
 			config BR2_LV_LOG_USE_TIMESTAMP
 				bool "Enable print timestamp"
 				default y
-				depends on BR2_LV_USE_LOG
+				depends on BR2_LV_USE_LOG && BR2_PACKAGE_LVGL_VERSION_9
 
 			config BR2_LV_LOG_USE_FILE_LINE
 				bool "Enable print file and line number"
 				default y
-				depends on BR2_LV_USE_LOG
+				depends on BR2_LV_USE_LOG && BR2_PACKAGE_LVGL_VERSION_9
 
 			config BR2_LV_LOG_TRACE_MEM
 				bool "Enable/Disable BR2_LV_LOG_TRACE in mem module"
@@ -516,38 +308,6 @@ menu "LVGL v9.1.0 configuration"
 		endmenu
 
 		menu "Others"
-			config BR2_LV_ENABLE_GLOBAL_CUSTOM
-				bool "Enable 'lv_global' customization"
-
-			config BR2_LV_GLOBAL_CUSTOM_INCLUDE
-				string "Header to include for the custom 'lv_global' function"
-				depends on BR2_LV_ENABLE_GLOBAL_CUSTOM
-				default "lv_global.h"
-
-			config BR2_LV_CACHE_DEF_SIZE
-				int "Default image cache size. 0 to disable caching"
-				default 0
-				depends on BR2_LV_USE_DRAW_SW
-				help
-					If only the built-in image formats are used there is no real advantage of caching.
-					(I.e. no new image decoder is added).
-
-					With complex image decoders (e.g. PNG or JPG) caching can
-					save the continuous open/decode of images.
-					However the opened images might consume additional RAM.
-
-			config BR2_LV_IMAGE_HEADER_CACHE_DEF_CNT
-				int "Default image header cache count. 0 to disable caching"
-				default 0
-				depends on BR2_LV_USE_DRAW_SW
-				help
-					If only the built-in image formats are used there is no real advantage of caching.
-					(I.e. no new image decoder is added).
-
-					With complex image decoders (e.g. PNG or JPG) caching can
-					save the continuous getting header information of images.
-					However the records of opened images headers might consume additional RAM.
-
 			config BR2_LV_GRADIENT_MAX_STOPS
 				int "Number of stops allowed per gradient"
 				default 2
@@ -568,57 +328,12 @@ menu "LVGL v9.1.0 configuration"
 					192: round up from x.25
 					254: round up
 
-			config BR2_LV_OBJ_STYLE_CACHE
-				bool "Use cache to speed up getting object style properties"
-				default n
-				help
-					Add 2 x 32 bit variables to each lv_obj_t to speed up getting style properties
-
-			config BR2_LV_USE_OBJ_ID
-				bool "Add id field to obj"
-				default n
-
-			config BR2_LV_USE_OBJ_ID_BUILTIN
-				bool "Use builtin method to deal with obj ID"
-				default n
-
-			config BR2_LV_USE_OBJ_PROPERTY
-				bool "Use obj property set/get API"
-				default n
-
-			config BR2_LV_USE_VG_LITE_THORVG
-				bool "VG-Lite Simulator"
-				default n
-				depends on BR2_LV_USE_THORVG
-				help
-					Use thorvg to simulate VG-Lite hardware behavior, it's useful
-					for debugging and testing on PC simulator. Enable BR2_LV_USE_THORVG,
-					Either internal ThorVG or external ThorVG library is required.
-
-			config BR2_LV_VG_LITE_THORVG_LVGL_BLEND_SUPPORT
-				bool "Enable LVGL blend mode support"
-				default n
-				depends on BR2_LV_USE_VG_LITE_THORVG
-
-			config BR2_LV_VG_LITE_THORVG_YUV_SUPPORT
-				bool "Enable YUV color format support"
-				default n
-				depends on BR2_LV_USE_VG_LITE_THORVG
-
-			config BR2_LV_VG_LITE_THORVG_16PIXELS_ALIGN
-				bool "Enable 16 pixels alignment"
-				default y
-				depends on BR2_LV_USE_VG_LITE_THORVG
-
-			config BR2_LV_VG_LITE_THORVG_BUF_ADDR_ALIGN
-				int "Buffer address alignment"
-				default 64
-				depends on BR2_LV_USE_VG_LITE_THORVG
-
-			config BR2_LV_VG_LITE_THORVG_THREAD_RENDER
-				bool "Enable multi-thread render"
-				default n
-				depends on BR2_LV_USE_VG_LITE_THORVG
+			if BR2_PACKAGE_LVGL_VERSION_8
+				source "configs/8.4.0/Config.in.others"
+			endif
+			if BR2_PACKAGE_LVGL_VERSION_9
+				source "configs/9.2.2/Config.in.others"
+			endif
 		endmenu
 	endmenu
 
@@ -635,9 +350,25 @@ menu "LVGL v9.1.0 configuration"
 			help
 				Set this option to configure IRAM as BR2_LV_ATTRIBUTE_FAST_MEM
 
+		config BR2_LV_USE_LARGE_COORD
+			bool "Extend the default -32k..32k coordinate range to -4M..4M by using int32_t for coordinates instead of int16_t"
+			depends on BR2_PACKAGE_LVGL_VERSION_8
+
 		config BR2_LV_USE_FLOAT
 			bool "Use float as lv_value_precise_t"
 			default n
+			depends on BR2_PACKAGE_LVGL_VERSION_9
+
+		config BR2_LV_USE_MATRIX
+			bool "Enable matrix support"
+			default n
+			select BR2_LV_USE_FLOAT
+			depends on BR2_PACKAGE_LVGL_VERSION_9
+
+		config BR2_LV_USE_PRIVATE_API
+			bool "Include `lvgl_private.h` in `lvgl.h` to access internal data and functions by default"
+			default n
+			depends on BR2_PACKAGE_LVGL_VERSION_9
 	endmenu
 
 	menu "Font Usage"
@@ -686,10 +417,16 @@ menu "LVGL v9.1.0 configuration"
 			config BR2_LV_FONT_MONTSERRAT_48
 				bool "Enable Montserrat 48"
 
+			config BR2_LV_FONT_MONTSERRAT_12_SUBPX
+				depends on BR2_PACKAGE_LVGL_VERSION_8
+				bool "Enable Montserrat 12 sub-pixel"
 			config BR2_LV_FONT_MONTSERRAT_28_COMPRESSED
 				bool "Enable Montserrat 28 compressed"
 			config BR2_LV_FONT_DEJAVU_16_PERSIAN_HEBREW
 				bool "Enable Dejavu 16 Persian, Hebrew, Arabic letters"
+			config BR2_LV_FONT_SIMSUN_14_CJK
+				bool "Enable Simsun 14 CJK"
+				depends on BR2_PACKAGE_LVGL_VERSION_9
 			config BR2_LV_FONT_SIMSUN_16_CJK
 				bool "Enable Simsun 16 CJK"
 
@@ -710,6 +447,9 @@ menu "LVGL v9.1.0 configuration"
 			config BR2_LV_FONT_DEFAULT_MONTSERRAT_8
 				bool "Montserrat 8"
 				select BR2_LV_FONT_MONTSERRAT_8
+			config BR2_LV_FONT_DEFAULT_MONTSERRAT_10
+				bool "Montserrat 10"
+				select BR2_LV_FONT_MONTSERRAT_10
 			config BR2_LV_FONT_DEFAULT_MONTSERRAT_12
 				bool "Montserrat 12"
 				select BR2_LV_FONT_MONTSERRAT_12
@@ -767,12 +507,19 @@ menu "LVGL v9.1.0 configuration"
 			config BR2_LV_FONT_DEFAULT_MONTSERRAT_48
 				bool "Montserrat 48"
 				select BR2_LV_FONT_MONTSERRAT_48
+			config BR2_LV_FONT_DEFAULT_MONTSERRAT_12_SUBPX
+				bool "Montserrat 12 sub-pixel"
+				select BR2_LV_FONT_MONTSERRAT_12_SUBPX
 			config BR2_LV_FONT_DEFAULT_MONTSERRAT_28_COMPRESSED
 				bool "Montserrat 28 compressed"
 				select BR2_LV_FONT_MONTSERRAT_28_COMPRESSED
 			config BR2_LV_FONT_DEFAULT_DEJAVU_16_PERSIAN_HEBREW
 				bool "Dejavu 16 Persian, Hebrew, Arabic letters"
 				select BR2_LV_FONT_DEJAVU_16_PERSIAN_HEBREW
+			config BR2_LV_FONT_DEFAULT_SIMSUN_14_CJK
+				bool "Simsun 14 CJK"
+				depends on BR2_PACKAGE_LVGL_VERSION_9
+				select BR2_LV_FONT_SIMSUN_14_CJK
 			config BR2_LV_FONT_DEFAULT_SIMSUN_16_CJK
 				bool "Simsun 16 CJK"
 				select BR2_LV_FONT_SIMSUN_16_CJK
@@ -794,33 +541,46 @@ menu "LVGL v9.1.0 configuration"
 		config BR2_LV_USE_FONT_COMPRESSED
 			bool "Sets support for compressed fonts"
 
+		config BR2_LV_USE_FONT_SUBPX
+			bool "Enable subpixel rendering."
+			depends on BR2_PACKAGE_LVGL_VERSION_8
+
+		config BR2_LV_FONT_SUBPX_BGR
+			bool "Use BGR instead RGB for sub-pixel rendering."
+			depends on BR2_LV_USE_FONT_SUBPX
+			depends on BR2_PACKAGE_LVGL_VERSION_8
+			help
+				Set the pixel order of the display.
+				Important only if "subpx fonts" are used.
+				With "normal" font it doesn't matter.
+
 		config BR2_LV_USE_FONT_PLACEHOLDER
 			bool "Enable drawing placeholders when glyph dsc is not found"
 			default y
 	endmenu
 
 	menu "Text Settings"
-		choice BR2_LV_TXT_ENC_TYPE
+		choice BR2_LV_TXT_ENC
 			prompt "Select a character encoding for strings"
 			help
 				Select a character encoding for strings. Your IDE or editor should have the same character encoding.
-			default BR2_LV_TXT_ENC_TYPE_UTF8 if !BR2_LV_CONF_MINIMAL
-			default BR2_LV_TXT_ENC_TYPE_ASCII if BR2_LV_CONF_MINIMAL
+			default BR2_LV_TXT_ENC_UTF8 if !BR2_LV_CONF_MINIMAL
+			default BR2_LV_TXT_ENC_ASCII if BR2_LV_CONF_MINIMAL
 
-			config BR2_LV_TXT_ENC_TYPE_UTF8
+			config BR2_LV_TXT_ENC_UTF8
 				bool "UTF8"
-			config BR2_LV_TXT_ENC_TYPE_ASCII
+			config BR2_LV_TXT_ENC_ASCII
 				bool "ASCII"
 		endchoice
 
 		config BR2_LV_TXT_ENC
 			int
-			default 1 if BR2_LV_TXT_ENC_TYPE_UTF8
-			default 2 if BR2_LV_TXT_ENC_TYPE_ASCII
+			default 1 if BR2_LV_TXT_ENC_UTF8
+			default 2 if BR2_LV_TXT_ENC_ASCII
 
 		config BR2_LV_TXT_BREAK_CHARS
 			string "Can break (wrap) texts on these chars"
-			default " ,.;:-_)]}"
+			default " ,.;:-_)}"
 
 		config BR2_LV_TXT_LINE_BREAK_LONG_LEN
 			int "Line break long length"
@@ -843,6 +603,11 @@ menu "LVGL v9.1.0 configuration"
 			help
 				Minimum number of characters in a long word to put on a line after a break
 
+		config BR2_LV_TXT_COLOR_CMD
+			string "The control character to use for signalling text recoloring"
+			default "#"
+			depends on BR2_PACKAGE_LVGL_VERSION_8
+
 		config BR2_LV_USE_BIDI
 			bool "Support bidirectional texts"
 			help
@@ -852,35 +617,35 @@ menu "LVGL v9.1.0 configuration"
 
 		choice
 			prompt "Set the default BIDI direction"
-			default BR2_LV_BIDI_DIR_AUTO_V9
+			default BR2_LV_BIDI_DIR_AUTO
 			depends on BR2_LV_USE_BIDI
 
-			config BR2_LV_BIDI_DIR_LTR_V9
+			config BR2_LV_BIDI_DIR_LTR
 				bool "Left-to-Right"
-			config BR2_LV_BIDI_DIR_RTL_V9
+			config BR2_LV_BIDI_DIR_RTL
 				bool "Right-to-Left"
-			config BR2_LV_BIDI_DIR_AUTO_V9
+			config BR2_LV_BIDI_DIR_AUTO
 				bool "Detect texts base direction"
 		endchoice
 
 		config BR2_LV_BIDI_BASE_DIR_DEF
 			int
-			depends on BR2_LV_USE_BIDI
-			default 0 if BR2_LV_BIDI_DIR_LTR_V9
-			default 1 if BR2_LV_BIDI_DIR_RTL_V9
-			default 2 if BR2_LV_BIDI_DIR_AUTO_V9
+			default 0 if BR2_LV_BIDI_DIR_LTR
+			default 1 if BR2_LV_BIDI_DIR_RTL
+			default 2 if BR2_LV_BIDI_DIR_AUTO
 
 		config BR2_LV_USE_ARABIC_PERSIAN_CHARS
 			bool "Enable Arabic/Persian processing"
 			help
 				In these languages characters should be replaced with
-				an other form based on their position in the text.
+				another form based on their position in the text.
 	endmenu
 
 	menu "Widget Usage"
 		config BR2_LV_WIDGETS_HAS_DEFAULT_VALUE
 			bool "Widgets has default value"
 			default y if !BR2_LV_CONF_MINIMAL
+			depends on BR2_PACKAGE_LVGL_VERSION_9
 		config BR2_LV_USE_ANIMIMG
 			bool "Anim image"
 			default y if !BR2_LV_CONF_MINIMAL
@@ -893,6 +658,9 @@ menu "LVGL v9.1.0 configuration"
 		config BR2_LV_USE_BUTTON
 			bool "Button"
 			default y if !BR2_LV_CONF_MINIMAL
+		config BR2_LV_USE_BTN
+			bool
+			default y if BR2_LV_USE_BUTTON
 		config BR2_LV_USE_BUTTONMATRIX
 			bool "Button matrix"
 			default y if !BR2_LV_CONF_MINIMAL
@@ -910,6 +678,10 @@ menu "LVGL v9.1.0 configuration"
 			bool "Use calendar header dropdown"
 			depends on BR2_LV_USE_CALENDAR
 			default y
+		config BR2_LV_USE_CALENDAR_CHINESE
+			bool "Use chinese calendar"
+			depends on BR2_LV_USE_CALENDAR
+			depends on BR2_PACKAGE_LVGL_VERSION_9
 		config BR2_LV_USE_CANVAS
 			bool "Canvas. Requires: lv_image"
 			imply BR2_LV_USE_IMAGE
@@ -920,6 +692,10 @@ menu "LVGL v9.1.0 configuration"
 		config BR2_LV_USE_CHECKBOX
 			bool "Check Box"
 			default y if !BR2_LV_CONF_MINIMAL
+		config BR2_LV_USE_COLORWHEEL
+			bool "Colorwheel."
+			default y if !BR2_LV_CONF_MINIMAL
+			depends on BR2_PACKAGE_LVGL_VERSION_8
 		config BR2_LV_USE_DROPDOWN
 			bool "Drop down list. Requires: lv_label"
 			imply BR2_LV_USE_LABEL
@@ -928,9 +704,19 @@ menu "LVGL v9.1.0 configuration"
 			bool "Image. Requires: lv_label"
 			imply BR2_LV_USE_LABEL
 			default y if !BR2_LV_CONF_MINIMAL
+		config BR2_LV_USE_IMG
+			bool
+			default y if BR2_LV_USE_IMAGE
 		config BR2_LV_USE_IMAGEBUTTON
 			bool "ImageButton"
 			default y if !BR2_LV_CONF_MINIMAL
+		config BR2_LV_USE_INPUTBOX
+			bool "InputBox."
+			default y if !BR2_LV_CONF_MINIMAL
+			depends on BR2_PACKAGE_LVGL_VERSION_8
+		config BR2_LV_USE_IMGBTN
+			bool
+			default y if BR2_LV_USE_IMAGEBUTTON
 		config BR2_LV_USE_KEYBOARD
 			bool "Keyboard"
 			default y if !BR2_LV_CONF_MINIMAL
@@ -948,6 +734,7 @@ menu "LVGL v9.1.0 configuration"
 		config BR2_LV_LABEL_WAIT_CHAR_COUNT
 			int "The count of wait chart"
 			depends on BR2_LV_USE_LABEL
+			depends on BR2_PACKAGE_LVGL_VERSION_9
 			default 3
 		config BR2_LV_USE_LED
 			bool "LED"
@@ -958,22 +745,36 @@ menu "LVGL v9.1.0 configuration"
 		config BR2_LV_USE_LIST
 			bool "List"
 			default y if !BR2_LV_CONF_MINIMAL
+		config BR2_LV_USE_LOTTIE
+			bool "Lottie"
+			default n
+			depends on BR2_LV_USE_VECTOR_GRAPHIC && (LV_USE_THORVG_INTERNAL || BR2_LV_USE_THORVG_EXTERNAL)
+			depends on BR2_PACKAGE_LVGL_VERSION_9
+			help
+				Enable Lottie animations. Requires BR2_LV_USE_VECTOR_GRAPHIC and BR2_LV_USE_THORVG_INTERNAL or BR2_LV_USE_THORVG_EXTERNAL.
 		config BR2_LV_USE_MENU
 			bool "Menu"
 			default y if !BR2_LV_CONF_MINIMAL
+		config BR2_LV_USE_METER
+			bool "Meter."
+			default y if !BR2_LV_CONF_MINIMAL
+			depends on BR2_PACKAGE_LVGL_VERSION_8
 		config BR2_LV_USE_MSGBOX
 			bool "Msgbox"
 			default y if !BR2_LV_CONF_MINIMAL
-		config BR2_LV_USE_OBSERVER
-			bool "Observer"
-			default n
 		config BR2_LV_USE_ROLLER
 			bool "Roller. Requires: lv_label"
 			imply BR2_LV_USE_LABEL
 			default y if !BR2_LV_CONF_MINIMAL
+		config BR2_LV_ROLLER_INF_PAGES
+			int "Number of extra 'pages' when the controller is infinite."
+			default 7
+			depends on BR2_LV_USE_ROLLER
+			depends on BR2_PACKAGE_LVGL_VERSION_8
 		config BR2_LV_USE_SCALE
 			bool "Scale"
 			default y if !BR2_LV_CONF_MINIMAL
+			depends on BR2_PACKAGE_LVGL_VERSION_9
 		config BR2_LV_USE_SLIDER
 			bool "Slider. Requires: lv_bar"
 			imply BR2_LV_USE_BAR
@@ -1034,6 +835,9 @@ menu "LVGL v9.1.0 configuration"
 		config BR2_LV_USE_THEME_SIMPLE
 			bool "A very simple theme that is a good starting point for a custom theme"
 			default y if !BR2_LV_COLOR_DEPTH_1 && !BR2_LV_CONF_MINIMAL
+		config BR2_LV_USE_THEME_BASIC
+			bool
+			default y if BR2_LV_USE_THEME_SIMPLE
 		config BR2_LV_USE_THEME_MONO
 			bool "Monochrome theme, suitable for some E-paper & dot matrix displays"
 			default y if BR2_LV_COLOR_DEPTH_1 && !BR2_LV_CONF_MINIMAL
@@ -1049,10 +853,17 @@ menu "LVGL v9.1.0 configuration"
 	endmenu
 
 	menu "3rd Party Libraries"
+		config BR2_LV_FS_DEFAULT_DRIVE_LETTER
+			int "Default drive letter (e.g. 65 for 'A')"
+			default 0
+			depends on BR2_PACKAGE_LVGL_VERSION_9
+			help
+				Setting a default drive letter allows skipping the driver prefix in filepaths
+
 		config BR2_LV_USE_FS_STDIO
 			bool "File system on top of stdio API"
 		config BR2_LV_FS_STDIO_LETTER
-			int "Set an upper cased letter on which the drive will accessible (e.g. 'A' i.e. 65 )"
+			int "Set an upper cased letter on which the drive will accessible (e.g. 65 for 'A')"
 			default 0
 			depends on BR2_LV_USE_FS_STDIO
 		config BR2_LV_FS_STDIO_PATH
@@ -1066,7 +877,7 @@ menu "LVGL v9.1.0 configuration"
 		config BR2_LV_USE_FS_POSIX
 			bool "File system on top of posix API"
 		config BR2_LV_FS_POSIX_LETTER
-			int "Set an upper cased letter on which the drive will accessible (e.g. 'A' i.e. 65)"
+			int "Set an upper cased letter on which the drive will accessible (e.g. 65 for 'A')"
 			default 0
 			depends on BR2_LV_USE_FS_POSIX
 		config BR2_LV_FS_POSIX_PATH
@@ -1080,7 +891,7 @@ menu "LVGL v9.1.0 configuration"
 		config BR2_LV_USE_FS_WIN32
 			bool "File system on top of Win32 API"
 		config BR2_LV_FS_WIN32_LETTER
-			int "Set an upper cased letter on which the drive will accessible (e.g. 'A' i.e. 65)"
+			int "Set an upper cased letter on which the drive will accessible (e.g. 65 for 'A')"
 			default 0
 			depends on BR2_LV_USE_FS_WIN32
 		config BR2_LV_FS_WIN32_PATH
@@ -1094,7 +905,7 @@ menu "LVGL v9.1.0 configuration"
 		config BR2_LV_USE_FS_FATFS
 			bool "File system on top of FatFS"
 		config BR2_LV_FS_FATFS_LETTER
-			int "Set an upper cased letter on which the drive will accessible (e.g. 'A' i.e. 65)"
+			int "Set an upper cased letter on which the drive will accessible (e.g. 65 for 'A')"
 			default 0
 			depends on BR2_LV_USE_FS_FATFS
 		config BR2_LV_FS_FATFS_CACHE_SIZE
@@ -1104,78 +915,120 @@ menu "LVGL v9.1.0 configuration"
 
 		config BR2_LV_USE_FS_MEMFS
 			bool "File system on top of memory-mapped API"
+			depends on BR2_PACKAGE_LVGL_VERSION_9
 		config BR2_LV_FS_MEMFS_LETTER
-			int "Set an upper cased letter on which the drive will accessible (e.g. 'A' i.e. 65)"
+			int "Set an upper cased letter on which the drive will accessible (e.g. 65 for 'A')"
 			default 0
 			depends on BR2_LV_USE_FS_MEMFS
 
 		config BR2_LV_USE_FS_LITTLEFS
 			bool "File system on top of littlefs API"
+			depends on BR2_PACKAGE_LVGL_VERSION_9
 		config BR2_LV_FS_LITTLEFS_LETTER
-			int "Set an upper cased letter on which the drive will accessible (e.g. 'A' i.e. 65)"
+			int "Set an upper cased letter on which the drive will accessible (e.g. 65 for 'A')"
 			default 0
 			depends on BR2_LV_USE_FS_LITTLEFS
 
 		config BR2_LV_USE_LODEPNG
 			bool "PNG decoder library"
+		config BR2_LV_USE_PNG
+			bool
+			default y if BR2_LV_USE_LODEPNG
 
 		config BR2_LV_USE_LIBPNG
 			bool "PNG decoder(libpng) library"
+			depends on BR2_PACKAGE_LVGL_VERSION_9
 
 		config BR2_LV_USE_BMP
 			bool "BMP decoder library"
 
+		config BR2_LV_USE_SJPG
+			bool "JPG + split JPG decoder library"
+			depends on BR2_PACKAGE_LVGL_VERSION_8
+
 		config BR2_LV_USE_TJPGD
 			bool "TJPGD decoder library"
+			depends on BR2_PACKAGE_LVGL_VERSION_9
 
 		config BR2_LV_USE_LIBJPEG_TURBO
 			bool "libjpeg-turbo decoder library"
+			depends on BR2_PACKAGE_LVGL_VERSION_9
 
 		config BR2_LV_USE_GIF
 			bool "GIF decoder library"
 
 		config BR2_LV_GIF_CACHE_DECODE_DATA
-			bool "Use extra 16KB RAM to cache decoded data to accerlate"
+			bool "Use extra 16KB RAM to cache decoded data to accelerate"
 			depends on BR2_LV_USE_GIF
+			depends on BR2_PACKAGE_LVGL_VERSION_9
 
 		config BR2_LV_BIN_DECODER_RAM_LOAD
 			bool "Decode whole image to RAM for bin decoder"
 			default n
+			depends on BR2_PACKAGE_LVGL_VERSION_9
 
 		config BR2_LV_USE_RLE
 			bool "LVGL's version of RLE compression method"
+			depends on BR2_PACKAGE_LVGL_VERSION_9
 
 		config BR2_LV_USE_QRCODE
 			bool "QR code library"
 
 		config BR2_LV_USE_BARCODE
 			bool "Barcode library"
+			depends on BR2_PACKAGE_LVGL_VERSION_9
 
 		config BR2_LV_USE_FREETYPE
 			bool "FreeType library"
-			select BR2_PACKAGE_FREETYPE
 		config BR2_LV_FREETYPE_USE_LVGL_PORT
 			bool "Let FreeType to use LVGL memory and file porting"
 			default n
 			depends on BR2_LV_USE_FREETYPE
+			depends on BR2_PACKAGE_LVGL_VERSION_9
 		config BR2_LV_FREETYPE_CACHE_FT_GLYPH_CNT
 			int "The maximum number of Glyph in count"
 			default 256
 			depends on BR2_LV_USE_FREETYPE
+			depends on BR2_PACKAGE_LVGL_VERSION_9
+		if BR2_LV_USE_FREETYPE
+			menu "FreeType cache config"
+			depends on BR2_PACKAGE_LVGL_VERSION_8
+				config BR2_LV_FREETYPE_CACHE_SIZE
+				int "Memory used by FreeType to cache characters [bytes] (-1: no caching)"
+				default 16384
+				if BR2_LV_FREETYPE_CACHE_SIZE >= 0
+					config BR2_LV_FREETYPE_SBIT_CACHE
+						bool "enable sbit cache"
+						default n
+					config BR2_LV_FREETYPE_CACHE_FT_FACES
+						int "The maximum number of FT_Face(0: use defaults)"
+						default 0
+					config BR2_LV_FREETYPE_CACHE_FT_SIZES
+						int "The maximum number of FT_Size(0: use defaults)"
+						default 0
+				endif
+			endmenu
+		endif
 
 		config BR2_LV_USE_TINY_TTF
 			bool "Enable Tiny TTF decoder"
+			depends on BR2_PACKAGE_LVGL_VERSION_9
 			default n
 		config BR2_LV_TINY_TTF_FILE_SUPPORT
 			bool "Enable loading Tiny TTF data from files"
 			default n
 			depends on BR2_LV_USE_TINY_TTF
+		config BR2_LV_TINY_TTF_CACHE_GLYPH_CNT
+			bool "Tiny ttf cache entries count"
+			default 256
+			depends on BR2_LV_USE_TINY_TTF
 
 		config BR2_LV_USE_RLOTTIE
-			select BR2_PACKAGE_RLOTTIE
 			bool "Lottie library"
+
 		config BR2_LV_USE_THORVG
 			bool "ThorVG library"
+			depends on BR2_PACKAGE_LVGL_VERSION_9
 			choice
 				prompt "Use ThorVG config"
 				depends on BR2_LV_USE_THORVG
@@ -1188,9 +1041,11 @@ menu "LVGL v9.1.0 configuration"
 		config BR2_PACKAGE_LVGL_DISABLE_THORVG
 			bool
 			default y if !BR2_LV_USE_THORVG
+			depends on BR2_PACKAGE_LVGL_VERSION_9
 
 		config BR2_LV_USE_LZ4
 			bool "Enable LZ4 compress/decompress lib"
+			depends on BR2_PACKAGE_LVGL_VERSION_9
 			choice
 				prompt "Choose lvgl built-in LZ4 lib or external lib"
 				depends on BR2_LV_USE_LZ4
@@ -1210,48 +1065,49 @@ menu "LVGL v9.1.0 configuration"
 		config BR2_LV_USE_SYSMON
 			bool "Enable system monitor component"
 			default n
+			depends on BR2_PACKAGE_LVGL_VERSION_9
 
 		config BR2_LV_USE_PERF_MONITOR
 			bool "Show CPU usage and FPS count"
-			depends on BR2_LV_USE_SYSMON
+			depends on BR2_LV_USE_SYSMON || BR2_PACKAGE_LVGL_VERSION_8
 
 		choice
 			prompt "Performance monitor position"
 			depends on BR2_LV_USE_PERF_MONITOR
-			default BR2_LV_PERF_MONITOR_ALIGN_BOTTOM_RIGHT_V9
+			default BR2_LV_PERF_MONITOR_ALIGN_BOTTOM_RIGHT
 
-			config BR2_LV_PERF_MONITOR_ALIGN_TOP_LEFT_V9
+			config BR2_LV_PERF_MONITOR_ALIGN_TOP_LEFT
 				bool "Top left"
-			config BR2_LV_PERF_MONITOR_ALIGN_TOP_MID_V9
+			config BR2_LV_PERF_MONITOR_ALIGN_TOP_MID
 				bool "Top middle"
-			config BR2_LV_PERF_MONITOR_ALIGN_TOP_RIGHT_V9
+			config BR2_LV_PERF_MONITOR_ALIGN_TOP_RIGHT
 				bool "Top right"
-			config BR2_LV_PERF_MONITOR_ALIGN_BOTTOM_LEFT_V9
+			config BR2_LV_PERF_MONITOR_ALIGN_BOTTOM_LEFT
 				bool "Bottom left"
-			config BR2_LV_PERF_MONITOR_ALIGN_BOTTOM_MID_V9
+			config BR2_LV_PERF_MONITOR_ALIGN_BOTTOM_MID
 				bool "Bottom middle"
-			config BR2_LV_PERF_MONITOR_ALIGN_BOTTOM_RIGHT_V9
+			config BR2_LV_PERF_MONITOR_ALIGN_BOTTOM_RIGHT
 				bool "Bottom right"
-			config BR2_LV_PERF_MONITOR_ALIGN_LEFT_MID_V9
+			config BR2_LV_PERF_MONITOR_ALIGN_LEFT_MID
 				bool "Left middle"
-			config BR2_LV_PERF_MONITOR_ALIGN_RIGHT_MID_V9
+			config BR2_LV_PERF_MONITOR_ALIGN_RIGHT_MID
 				bool "Right middle"
-			config BR2_LV_PERF_MONITOR_ALIGN_CENTER_V9
+			config BR2_LV_PERF_MONITOR_ALIGN_CENTER
 				bool "Center"
 		endchoice
 
 		config BR2_LV_USE_PERF_MONITOR_POS
 			int
 			depends on BR2_LV_USE_PERF_MONITOR
-			default 1 if BR2_LV_PERF_MONITOR_ALIGN_TOP_LEFT_V9
-			default 2 if BR2_LV_PERF_MONITOR_ALIGN_TOP_MID_V9
-			default 3 if BR2_LV_PERF_MONITOR_ALIGN_TOP_RIGHT_V9
-			default 4 if BR2_LV_PERF_MONITOR_ALIGN_BOTTOM_LEFT_V9
-			default 5 if BR2_LV_PERF_MONITOR_ALIGN_BOTTOM_MID_V9
-			default 6 if BR2_LV_PERF_MONITOR_ALIGN_BOTTOM_RIGHT_V9
-			default 7 if BR2_LV_PERF_MONITOR_ALIGN_LEFT_MID_V9
-			default 8 if BR2_LV_PERF_MONITOR_ALIGN_RIGHT_MID_V9
-			default 9 if BR2_LV_PERF_MONITOR_ALIGN_CENTER_V9
+			default 1 if BR2_LV_PERF_MONITOR_ALIGN_TOP_LEFT
+			default 2 if BR2_LV_PERF_MONITOR_ALIGN_TOP_MID
+			default 3 if BR2_LV_PERF_MONITOR_ALIGN_TOP_RIGHT
+			default 4 if BR2_LV_PERF_MONITOR_ALIGN_BOTTOM_LEFT
+			default 5 if BR2_LV_PERF_MONITOR_ALIGN_BOTTOM_MID
+			default 6 if BR2_LV_PERF_MONITOR_ALIGN_BOTTOM_RIGHT
+			default 7 if BR2_LV_PERF_MONITOR_ALIGN_LEFT_MID
+			default 8 if BR2_LV_PERF_MONITOR_ALIGN_RIGHT_MID
+			default 9 if BR2_LV_PERF_MONITOR_ALIGN_CENTER
 
 		config BR2_LV_USE_PERF_MONITOR_LOG_MODE
 			bool "Prints performance data using log"
@@ -1261,52 +1117,49 @@ menu "LVGL v9.1.0 configuration"
 		config BR2_LV_USE_MEM_MONITOR
 			bool "Show the used memory and the memory fragmentation"
 			default n
-			depends on BR2_LV_STDLIB_BUILTIN && BR2_LV_USE_SYSMON
+			depends on BR2_LV_USE_BUILTIN_MALLOC && BR2_LV_USE_SYSMON
 
 		choice
 			prompt "Memory monitor position"
 			depends on BR2_LV_USE_MEM_MONITOR
-			default BR2_LV_MEM_MONITOR_ALIGN_BOTTOM_LEFT_V9
+			default BR2_LV_MEM_MONITOR_ALIGN_BOTTOM_LEFT
 
-			config BR2_LV_MEM_MONITOR_ALIGN_TOP_LEFT_V9
+			config BR2_LV_MEM_MONITOR_ALIGN_TOP_LEFT
 				bool "Top left"
-			config BR2_LV_MEM_MONITOR_ALIGN_TOP_MID_V9
+			config BR2_LV_MEM_MONITOR_ALIGN_TOP_MID
 				bool "Top middle"
-			config BR2_LV_MEM_MONITOR_ALIGN_TOP_RIGHT_V9
+			config BR2_LV_MEM_MONITOR_ALIGN_TOP_RIGHT
 				bool "Top right"
-			config BR2_LV_MEM_MONITOR_ALIGN_BOTTOM_LEFT_V9
+			config BR2_LV_MEM_MONITOR_ALIGN_BOTTOM_LEFT
 				bool "Bottom left"
-			config BR2_LV_MEM_MONITOR_ALIGN_BOTTOM_MID_V9
+			config BR2_LV_MEM_MONITOR_ALIGN_BOTTOM_MID
 				bool "Bottom middle"
-			config BR2_LV_MEM_MONITOR_ALIGN_BOTTOM_RIGHT_V9
+			config BR2_LV_MEM_MONITOR_ALIGN_BOTTOM_RIGHT
 				bool "Bottom right"
-			config BR2_LV_MEM_MONITOR_ALIGN_LEFT_MID_V9
+			config BR2_LV_MEM_MONITOR_ALIGN_LEFT_MID
 				bool "Left middle"
-			config BR2_LV_MEM_MONITOR_ALIGN_RIGHT_MID_V9
+			config BR2_LV_MEM_MONITOR_ALIGN_RIGHT_MID
 				bool "Right middle"
-			config BR2_LV_MEM_MONITOR_ALIGN_CENTER_V9
+			config BR2_LV_MEM_MONITOR_ALIGN_CENTER
 				bool "Center"
 		endchoice
 
 		config BR2_LV_USE_MEM_MONITOR_POS
 			int
 			depends on BR2_LV_USE_MEM_MONITOR
-			default 1 if BR2_LV_MEM_MONITOR_ALIGN_TOP_LEFT_V9
-			default 2 if BR2_LV_MEM_MONITOR_ALIGN_TOP_MID_V9
-			default 3 if BR2_LV_MEM_MONITOR_ALIGN_TOP_RIGHT_V9
-			default 4 if BR2_LV_MEM_MONITOR_ALIGN_BOTTOM_LEFT_V9
-			default 5 if BR2_LV_MEM_MONITOR_ALIGN_BOTTOM_MID_V9
-			default 6 if BR2_LV_MEM_MONITOR_ALIGN_BOTTOM_RIGHT_V9
-			default 7 if BR2_LV_MEM_MONITOR_ALIGN_LEFT_MID_V9
-			default 8 if BR2_LV_MEM_MONITOR_ALIGN_RIGHT_MID_V9
-			default 9 if BR2_LV_MEM_MONITOR_ALIGN_CENTER_V9
-
-		config BR2_LV_USE_MONKEY
-			bool "Enable Monkey test"
-			default n
+			default 1 if BR2_LV_MEM_MONITOR_ALIGN_TOP_LEFT
+			default 2 if BR2_LV_MEM_MONITOR_ALIGN_TOP_MID
+			default 3 if BR2_LV_MEM_MONITOR_ALIGN_TOP_RIGHT
+			default 4 if BR2_LV_MEM_MONITOR_ALIGN_BOTTOM_LEFT
+			default 5 if BR2_LV_MEM_MONITOR_ALIGN_BOTTOM_MID
+			default 6 if BR2_LV_MEM_MONITOR_ALIGN_BOTTOM_RIGHT
+			default 7 if BR2_LV_MEM_MONITOR_ALIGN_LEFT_MID
+			default 8 if BR2_LV_MEM_MONITOR_ALIGN_RIGHT_MID
+			default 9 if BR2_LV_MEM_MONITOR_ALIGN_CENTER
 
 		config BR2_LV_USE_PROFILER
 			bool "Runtime performance profiler"
+			depends on BR2_PACKAGE_LVGL_VERSION_9
 		config BR2_LV_USE_PROFILER_BUILTIN
 			bool "Enable the built-in profiler"
 			depends on BR2_LV_USE_PROFILER
@@ -1320,6 +1173,10 @@ menu "LVGL v9.1.0 configuration"
 			depends on BR2_LV_USE_PROFILER
 			default "lvgl/src/misc/lv_profiler_builtin.h"
 
+		config BR2_LV_USE_MONKEY
+			bool "Enable Monkey test"
+			default n
+
 		config BR2_LV_USE_GRIDNAV
 			bool "Enable grid navigation"
 			default n
@@ -1329,8 +1186,18 @@ menu "LVGL v9.1.0 configuration"
 			default n
 
 		config BR2_LV_USE_IMGFONT
-			bool "draw image in label or span obj"
+			bool "Support using images as font in label or span widgets"
 			default n
+
+		config BR2_LV_USE_OBSERVER
+			bool "Observer"
+			default y
+			depends on BR2_PACKAGE_LVGL_VERSION_9
+
+		config BR2_LV_USE_MSG
+			bool "Enable a published subscriber based messaging system"
+			default n
+			depends on BR2_PACKAGE_LVGL_VERSION_8
 
 		config BR2_LV_USE_IME_PINYIN
 			bool "Enable Pinyin input method"
@@ -1348,7 +1215,7 @@ menu "LVGL v9.1.0 configuration"
 			depends on BR2_LV_USE_IME_PINYIN
 			default y
 			help
-				If you do not use the default thesaurus, be sure to use lv_ime_pinyin after setting the thesauruss
+				If you do not use the default thesaurus, be sure to use lv_ime_pinyin after setting the thesaurus
 		config BR2_LV_IME_PINYIN_CAND_TEXT_NUM
 			int "Maximum number of candidate panels"
 			depends on BR2_LV_USE_IME_PINYIN
@@ -1359,6 +1226,7 @@ menu "LVGL v9.1.0 configuration"
 
 		config BR2_LV_USE_FILE_EXPLORER
 			bool "Enable file explorer"
+			depends on BR2_PACKAGE_LVGL_VERSION_9
 			default n
 		config BR2_LV_FILE_EXPLORER_PATH_MAX_LEN
 			int "Maximum length of path"
@@ -1370,12 +1238,25 @@ menu "LVGL v9.1.0 configuration"
 			default y
 			help
 				This can save some memory, but not much. After the quick access bar is created, it can be hidden by clicking the button at the top left corner of the browsing area, which is very useful for small screen devices.
+
+		config LVGL_VERSION_MAJOR
+			int
+			default 8 if BR2_PACKAGE_LVGL_VERSION_8
+			default 9 if BR2_PACKAGE_LVGL_VERSION_9
+		config LVGL_VERSION_MINOR
+			int
+			default 4 if BR2_PACKAGE_LVGL_VERSION_8
+			default 2 if BR2_PACKAGE_LVGL_VERSION_9
+		config LVGL_VERSION_PATCH
+			int
+			default 0 if BR2_PACKAGE_LVGL_VERSION_8
+			default 2 if BR2_PACKAGE_LVGL_VERSION_9
 	endmenu
 
 	menu "Devices"
+	depends on BR2_PACKAGE_LVGL_VERSION_9
 		config BR2_LV_USE_SDL
 			bool "Use SDL to open window on PC and handle mouse and keyboard"
-			select BR2_PACKAGE_SDL2
 			default n
 		config BR2_LV_SDL_INCLUDE_PATH
 			string "SDL include path"
@@ -1398,13 +1279,6 @@ menu "LVGL v9.1.0 configuration"
 			config BR2_LV_SDL_RENDER_MODE_FULL
 				bool "Always redraw the whole screen even if only one pixel has been changed with 2 screen sized buffers"
 		endchoice
-
-		config BR2_LV_SDL_RENDER_MODE
-			int
-			depends on BR2_LV_USE_SDL
-			default 0 if BR2_LV_SDL_RENDER_MODE_PARTIAL
-			default 1 if BR2_LV_SDL_RENDER_MODE_DIRECT
-			default 2 if BR2_LV_SDL_RENDER_MODE_FULL
 
 		choice
 			prompt "SDL buffer size"
@@ -1430,14 +1304,38 @@ menu "LVGL v9.1.0 configuration"
 			default 1 if BR2_LV_SDL_SINGLE_BUFFER
 			default 2 if BR2_LV_SDL_DOUBLE_BUFFER
 
+		config BR2_LV_SDL_ACCELERATED
+			bool "Use hardware acceleration"
+			depends on BR2_LV_USE_SDL
+			default y
+
 		config BR2_LV_SDL_FULLSCREEN
 			bool "SDL fullscreen"
 			depends on BR2_LV_USE_SDL
 			default n
+
 		config BR2_LV_SDL_DIRECT_EXIT
 			bool "Exit the application when all SDL windows are closed"
 			depends on BR2_LV_USE_SDL
 			default y
+
+		choice
+			prompt "SDL mousewheel mode"
+			depends on BR2_LV_USE_SDL
+			default BR2_LV_SDL_MOUSEWHEEL_MODE_ENCODER
+
+			config BR2_LV_SDL_MOUSEWHEEL_MODE_ENCODER
+				bool "The mousewheel emulates an encoder input device"
+
+			config BR2_LV_SDL_MOUSEWHEEL_MODE_CROWN
+				bool "The mousewheel emulates a smart watch crown"
+		endchoice
+
+		config BR2_LV_SDL_MOUSEWHEEL_MODE
+			int
+			depends on BR2_LV_USE_SDL
+			default 0 if BR2_LV_SDL_MOUSEWHEEL_MODE_ENCODER
+			default 1 if BR2_LV_SDL_MOUSEWHEEL_MODE_CROWN
 
 		config BR2_LV_USE_X11
 			bool "Use X11 window manager to open window on Linux PC and handle mouse and keyboard"
@@ -1471,6 +1369,18 @@ menu "LVGL v9.1.0 configuration"
 					Always redraw the whole screen even if only one pixel has been changed.
 					With 2 buffers in flush_cb only and address change is required.
 		endchoice
+
+		config BR2_LV_USE_WAYLAND
+			bool "Use the wayland client to open a window and handle inputs on Linux or BSD"
+			default n
+		config BR2_LV_WAYLAND_WINDOW_DECORATIONS
+			bool "Draw client side window decorations, only necessary on Mutter (GNOME)"
+			depends on BR2_LV_USE_WAYLAND
+			default n
+		config BR2_LV_WAYLAND_WL_SHELL
+			bool "Support the legacy wl_shell instead of the default XDG Shell protocol"
+			depends on BR2_LV_USE_WAYLAND
+			default n
 
 		config BR2_LV_USE_LINUX_FBDEV
 			bool "Use Linux framebuffer device"
@@ -1532,64 +1442,13 @@ menu "LVGL v9.1.0 configuration"
 			depends on BR2_LV_USE_LINUX_FBDEV && BR2_LV_LINUX_FBDEV_CUSTOM_BUFFER
 			default 60
 
-		config BR2_LV_USE_NUTTX
-			bool "Use Nuttx to open window and handle touchscreen"
-			default n
-
-		config BR2_LV_USE_NUTTX_LIBUV
-			bool "Use uv loop to replace default timer loop and other fb/indev timers"
-			depends on BR2_LV_USE_NUTTX
-			default n
-
-		config BR2_LV_USE_NUTTX_CUSTOM_INIT
-			bool "Use Custom Nuttx init API to open window and handle touchscreen"
-			depends on BR2_LV_USE_NUTTX
-			default n
-
-		config BR2_LV_USE_NUTTX_LCD
-			bool "Use NuttX LCD device"
-			depends on BR2_LV_USE_NUTTX
-			default n
-
-		choice
-			prompt "NuttX LCD buffer size"
-			depends on BR2_LV_USE_NUTTX_LCD
-			default BR2_LV_NUTTX_LCD_SINGLE_BUFFER
-
-			config BR2_LV_NUTTX_LCD_SINGLE_BUFFER
-				bool "One screen-sized buffer"
-
-			config BR2_LV_NUTTX_LCD_DOUBLE_BUFFER
-				bool "Two screen-sized buffer"
-
-			config BR2_LV_NUTTX_LCD_CUSTOM_BUFFER
-				bool "Custom-sized buffer"
-
-		endchoice
-
-		config BR2_LV_NUTTX_LCD_BUFFER_COUNT
-			int
-			depends on BR2_LV_USE_NUTTX_LCD
-			default 0 if BR2_LV_NUTTX_LCD_CUSTOM_BUFFER
-			default 1 if BR2_LV_NUTTX_LCD_SINGLE_BUFFER
-			default 2 if BR2_LV_NUTTX_LCD_DOUBLE_BUFFER
-
-		config BR2_LV_NUTTX_LCD_BUFFER_SIZE
-			int "Custom partial buffer size (in number of rows)"
-			depends on BR2_LV_USE_NUTTX_LCD && BR2_LV_NUTTX_LCD_CUSTOM_BUFFER
-			default 60
-
-		config BR2_LV_USE_NUTTX_TOUCHSCREEN
-			bool "Use NuttX touchscreen driver"
-			depends on BR2_LV_USE_NUTTX
-			default n
-
 		config BR2_LV_USE_LINUX_DRM
 			bool "Use Linux DRM device"
 			default n
 
 		config BR2_LV_DRM_USE_RGA
 			depends on BR2_LV_USE_LINUX_DRM
+			depends on BR2_PACKAGE_ROCKCHIP_RGA
 			bool "Use RGA in DRM drivers"
 			default n
 
@@ -1602,7 +1461,7 @@ menu "LVGL v9.1.0 configuration"
 			default n
 
 		config BR2_LV_USE_LIBINPUT
-    		bool "Use libinput input driver"
+			bool "Use libinput input driver"
 			default n
 
 		config BR2_LV_LIBINPUT_BSD
@@ -1615,28 +1474,18 @@ menu "LVGL v9.1.0 configuration"
 			depends on BR2_LV_USE_LIBINPUT
 			default n
 
-		config BR2_LV_USE_ST7735
-			bool "Use ST7735 LCD driver"
-			default n
-
-		config BR2_LV_USE_ST7789
-			bool "Use ST7789 LCD driver"
-			default n
-
-		config BR2_LV_USE_ST7796
-			bool "Use ST7796 LCD driver"
-			default n
-
-		config BR2_LV_USE_ILI9341
-			bool "Use ILI9341 LCD driver"
-			default n
-
-		config BR2_LV_USE_GENERIC_MIPI
-			bool "Generic MIPI driver"
-			default y if BR2_LV_USE_ST7735 || BR2_LV_USE_ST7789 || BR2_LV_USE_ST7796 || BR2_LV_USE_ILI9341
-
 		config BR2_LV_USE_WINDOWS
 			bool "Use LVGL Windows backend"
+			depends on BR2_LV_OS_WINDOWS
+			default n
+
+		config BR2_LV_USE_OPENGLES
+			bool "Use GLFW and OpenGL to open window on PC and handle mouse and keyboard"
+			default n
+
+		config BR2_LV_USE_OPENGLES_DEBUG
+			bool "Enable debug mode for OpenGL"
+			depends on BR2_LV_USE_OPENGLES
 			default n
 
 		config BR2_LV_USE_RKADK
@@ -1666,6 +1515,11 @@ menu "LVGL v9.1.0 configuration"
 			select BR2_LV_FONT_MONTSERRAT_20
 			select BR2_LV_FONT_MONTSERRAT_24
 			default n
+		config BR2_LV_DEMO_WIDGETS_SLIDESHOW
+			bool "Enable slide show"
+			depends on BR2_LV_USE_DEMO_WIDGETS
+			depends on BR2_PACKAGE_LVGL_VERSION_8
+			default n
 
 		config BR2_LV_USE_DEMO_KEYPAD_AND_ENCODER
 			bool "Demonstrate the usage of encoder and keyboard"
@@ -1676,13 +1530,27 @@ menu "LVGL v9.1.0 configuration"
 			default n
 			select BR2_LV_FONT_MONTSERRAT_14
 			select BR2_LV_FONT_MONTSERRAT_24
+
+		config BR2_LV_DEMO_BENCHMARK_RGB565A8
+			bool "Use RGB565A8 images with 16 bit color depth instead of ARGB8565"
+			depends on BR2_LV_USE_DEMO_BENCHMARK
+			depends on BR2_PACKAGE_LVGL_VERSION_8
+			default n
+
+		config BR2_LV_USE_DEMO_BENCHMARK_V9
+			bool
+			depends on BR2_PACKAGE_LVGL_VERSION_9
+			default y if BR2_LV_USE_DEMO_BENCHMARK
 			select BR2_LV_USE_DEMO_WIDGETS
+
 		config BR2_LV_USE_DEMO_RENDER
 			bool "Render test for each primitives. Requires at least 480x272 display"
+			depends on BR2_PACKAGE_LVGL_VERSION_9
 			default n
 
 		config BR2_LV_USE_DEMO_SCROLL
 			bool "Scroll settings test for LVGL"
+			depends on BR2_PACKAGE_LVGL_VERSION_9
 			default n
 
 		config BR2_LV_USE_DEMO_STRESS
@@ -1691,6 +1559,7 @@ menu "LVGL v9.1.0 configuration"
 
 		config BR2_LV_USE_DEMO_TRANSFORM
 			bool "Transform test for LVGL"
+			depends on BR2_PACKAGE_LVGL_VERSION_9
 			default n
 			select BR2_LV_FONT_MONTSERRAT_18
 
@@ -1729,14 +1598,17 @@ menu "LVGL v9.1.0 configuration"
 
 		config BR2_LV_USE_DEMO_FLEX_LAYOUT
 			bool "Flex layout previewer"
+			depends on BR2_PACKAGE_LVGL_VERSION_9
 			default n
 		config BR2_LV_USE_DEMO_MULTILANG
 			bool "multi-language demo"
+			depends on BR2_PACKAGE_LVGL_VERSION_9
 			default n
 		config BR2_LV_USE_DEMO_VECTOR_GRAPHIC
 			bool "vector graphic demo"
 			default n
 			depends on BR2_LV_USE_VECTOR_GRAPHIC
+			depends on BR2_PACKAGE_LVGL_VERSION_9
 
 		config BR2_PACKAGE_LVGL_DISABLE_DEMOS
 			bool

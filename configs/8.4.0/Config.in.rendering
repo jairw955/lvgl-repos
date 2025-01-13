@@ -1,0 +1,96 @@
+# Merge the "Drawing" and "GPU" menu
+
+config BR2_LV_DRAW_COMPLEX
+	bool "Enable complex draw engine"
+	default y
+	help
+		Required to draw shadow, gradient, rounded corners, circles, arc, skew lines,
+		image transformations or any masks.
+
+config BR2_LV_SHADOW_CACHE_SIZE
+	int "Allow buffering some shadow calculation"
+	depends on BR2_LV_DRAW_COMPLEX
+	default 0
+	help
+		LV_SHADOW_CACHE_SIZE is the max shadow size to buffer, where
+		shadow size is `shadow_width + radius`.
+		Caching has LV_SHADOW_CACHE_SIZE^2 RAM cost.
+
+config BR2_LV_CIRCLE_CACHE_SIZE
+	int "Set number of maximally cached circle data"
+	depends on BR2_LV_DRAW_COMPLEX
+	default 4
+	help
+		The circumference of 1/4 circle are saved for anti-aliasing
+		radius * 4 bytes are used per circle (the most often used
+		radiuses are saved).
+		Set to 0 to disable caching.
+
+config BR2_LV_LAYER_SIMPLE_BUF_SIZE
+	int "Optimal size to buffer the widget with opacity"
+	default 24576
+	help
+		"Simple layers" are used when a widget has `style_opa < 255`
+		to buffer the widget into a layer and blend it as an image
+		with the given opacity. Note that `bg_opa`, `text_opa` etc
+		don't require buffering into layer.
+
+config BR2_LV_IMG_CACHE_DEF_SIZE
+	int "Default image cache size. 0 to disable caching."
+	default 0
+	help
+		If only the built-in image formats are used there is no real advantage of caching.
+		(I.e. no new image decoder is added).
+
+		With complex image decoders (e.g. PNG or JPG) caching can
+		save the continuous open/decode of images.
+		However the opened images might consume additional RAM.
+
+config BR2_LV_GRAD_CACHE_DEF_SIZE
+	int "Default gradient buffer size."
+	default 0
+	help
+		When LVGL calculates the gradient "maps" it can save them into a cache to avoid calculating them again.
+		LV_GRAD_CACHE_DEF_SIZE sets the size of this cache in bytes.
+		If the cache is too small the map will be allocated only while it's required for the drawing.
+		0 mean no caching.
+
+config BR2_LV_DITHER_GRADIENT
+	bool "Allow dithering the gradients"
+	help
+		Allow dithering the gradients (to achieve visual smooth color gradients on limited color depth display)
+		LV_DITHER_GRADIENT implies allocating one or two more lines of the object's rendering surface
+		The increase in memory consumption is (32 bits * object width) plus 24 bits * object width if using error diffusion
+
+config BR2_LV_DITHER_ERROR_DIFFUSION
+	bool "Add support for error diffusion dithering"
+	depends on BR2_LV_DITHER_GRADIENT
+	help
+		Error diffusion dithering gets a much better visual result, but implies more CPU consumption and memory when drawing.
+		The increase in memory consumption is (24 bits * object's width)
+
+config BR2_LV_DISP_ROT_MAX_BUF
+	int "Maximum buffer size to allocate for rotation"
+	default 10240
+	help
+		Only used if software rotation is enabled in the display driver.
+
+config BR2_LV_USE_GPU_ARM2D
+	bool "Enable Arm's 2D image processing library (Arm-2D) for all Cortex-M processors."
+	default n
+	help
+		Must deploy arm-2d library to your project and add include PATH for "arm_2d.h".
+
+config BR2_LV_USE_GPU_SDL
+	bool "Use SDL renderer API"
+	default n
+config BR2_LV_GPU_SDL_INCLUDE_PATH
+	string "include path of SDL header"
+	depends on BR2_LV_USE_GPU_SDL
+	default "SDL2/SDL.h"
+config BR2_LV_GPU_SDL_LRU_SIZE
+	int "Maximum buffer size to allocate for rotation"
+	depends on BR2_LV_USE_GPU_SDL
+	default 8388608
+	help
+		Texture cache size, 8MB by default.

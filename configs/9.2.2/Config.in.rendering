@@ -1,0 +1,220 @@
+config BR2_LV_DRAW_BUF_STRIDE_ALIGN
+	int "Buffer stride alignment"
+	default 1
+help
+	Align the stride of all layers and images to this bytes.
+
+config BR2_LV_DRAW_BUF_ALIGN
+	int "Buffer address alignment"
+	default 4
+help
+	Align the start address of draw_buf addresses to this bytes.
+
+config BR2_LV_DRAW_TRANSFORM_USE_MATRIX
+	bool "Using matrix for transformations"
+	default n
+	depends on BR2_LV_USE_MATRIX
+	help
+		Requirements: The rendering engine needs to support 3x3 matrix transformations.
+
+config BR2_LV_DRAW_LAYER_SIMPLE_BUF_SIZE
+	int "Optimal size to buffer the widget with opacity"
+	default 24576
+	depends on BR2_LV_USE_DRAW_SW
+	help
+		If a widget has `style_opa < 255` (not `bg_opa`, `text_opa` etc) or not NORMAL blend mode
+		it is buffered into a "simple" layer before rendering. The widget can be buffered in smaller chunks.
+		"Transformed layers" (if `transform_angle/zoom` are set) use larger buffers and can't be drawn in chunks.
+
+config BR2_LV_DRAW_THREAD_STACK_SIZE
+	int "Stack size of draw thread in bytes"
+	default 32768
+	depends on BR2_LV_USE_OS > 0
+	help
+		If FreeType or ThorVG is enabled, it is recommended to set it to 32KB or more.
+
+config BR2_LV_USE_DRAW_SW
+	bool "Enable software rendering"
+	default y
+help
+	Required to draw anything on the screen.
+
+config BR2_LV_DRAW_SW_SUPPORT_RGB565
+	bool "Enable support for RGB565 color format"
+	default y
+	depends on BR2_LV_USE_DRAW_SW
+
+config BR2_LV_DRAW_SW_SUPPORT_RGB565A8
+	bool "Enable support for RGB565A8 color format"
+	default y
+	depends on BR2_LV_USE_DRAW_SW
+
+config BR2_LV_DRAW_SW_SUPPORT_RGB888
+	bool "Enable support for RGB888 color format"
+	default y
+	depends on BR2_LV_USE_DRAW_SW
+
+config BR2_LV_DRAW_SW_SUPPORT_XRGB8888
+	bool "Enable support for XRGB8888 color format"
+	default y
+	depends on BR2_LV_USE_DRAW_SW
+
+config BR2_LV_DRAW_SW_SUPPORT_ARGB8888
+	bool "Enable support for ARGB8888 color format"
+	default y
+	depends on BR2_LV_USE_DRAW_SW
+
+config BR2_LV_DRAW_SW_SUPPORT_L8
+	bool "Enable support for L8 color format"
+	default y
+	depends on BR2_LV_USE_DRAW_SW
+
+config BR2_LV_DRAW_SW_SUPPORT_AL88
+	bool "Enable support for AL88 color format"
+	default y
+	depends on BR2_LV_USE_DRAW_SW
+
+config BR2_LV_DRAW_SW_SUPPORT_A8
+	bool "Enable support for A8 color format"
+	default y
+	depends on BR2_LV_USE_DRAW_SW
+
+config BR2_LV_DRAW_SW_SUPPORT_I1
+	bool "Enable support for I1 color format"
+	default y
+	depends on BR2_LV_USE_DRAW_SW
+
+config BR2_LV_DRAW_SW_DRAW_UNIT_CNT
+	int "Number of draw units"
+	default 1
+	depends on BR2_LV_USE_DRAW_SW
+	help
+		> 1 requires an operating system enabled in `LV_USE_OS`
+		> 1 means multiply threads will render the screen in parallel
+
+config BR2_LV_USE_DRAW_ARM2D_SYNC
+	bool "Enable Arm's 2D image processing library (Arm-2D) for all Cortex-M processors"
+	default n
+	depends on BR2_LV_USE_DRAW_SW
+	help
+		Must deploy arm-2d library to your project and add include PATH for "arm_2d.h".
+
+config BR2_LV_USE_NATIVE_HELIUM_ASM
+	bool "Enable native helium assembly"
+	default n
+	depends on BR2_LV_USE_DRAW_SW
+	help
+		Disabling this allows arm2d to work on its own (for testing only)
+
+config BR2_LV_USE_DRAW_RK_TRANSFORM
+	bool "Enable RK transform"
+	default n
+	depends on BR2_LV_USE_DRAW_SW
+	help
+		Enable rk transform.
+
+config BR2_LV_DRAW_RK_TRANSFORM_SCALER_CORES
+	int "RK transform scaler cores"
+	default -1
+	depends on BR2_LV_USE_DRAW_RK_TRANSFORM
+	help
+		RK transform scaler cores.
+
+choice BR2_LV_DRAW_RK_TRANSFORM_SCALER_METHOD
+	prompt "RK transform scaler method"
+	default BR2_LV_DRAW_RK_TRANSFORM_SCALER_METHOD_NEAREST
+	depends on BR2_LV_USE_DRAW_RK_TRANSFORM
+	help
+		RK transform scaler method.
+
+	config BR2_LV_DRAW_RK_TRANSFORM_SCALER_METHOD_NEAREST
+		bool "nearest"
+	config BR2_LV_DRAW_RK_TRANSFORM_SCALER_METHOD_BILINEAR
+		bool "bilinear"
+endchoice
+
+config BR2_LV_DRAW_RK_TRANSFORM_SCALER_METHOD
+	int
+	default 0 if BR2_LV_DRAW_RK_TRANSFORM_SCALER_METHOD_NEAREST
+	default 1 if BR2_LV_DRAW_RK_TRANSFORM_SCALER_METHOD_BILINEAR
+	depends on BR2_LV_USE_DRAW_RK_TRANSFORM
+	help
+		RK transform scaler method.
+
+config BR2_LV_DRAW_SW_COMPLEX
+	bool "Enable complex draw engine"
+	default y
+	depends on BR2_LV_USE_DRAW_SW
+	help
+		0: use a simple renderer capable of drawing only simple rectangles with gradient, images, texts, and straight lines only,
+		1: use a complex renderer capable of drawing rounded corners, shadow, skew lines, and arcs too.
+
+config BR2_LV_USE_DRAW_SW_COMPLEX_GRADIENTS
+	bool "Enable drawing complex gradients in software"
+	default n
+	depends on BR2_LV_USE_DRAW_SW
+	help
+		0: do not enable complex gradients
+		1: enable complex gradients (linear at an angle, radial or conical)
+
+config BR2_LV_DRAW_SW_SHADOW_CACHE_SIZE
+	int "Allow buffering some shadow calculation"
+	depends on BR2_LV_DRAW_SW_COMPLEX
+	default 0
+	help
+		LV_DRAW_SW_SHADOW_CACHE_SIZE is the max shadow size to buffer, where
+		shadow size is `shadow_width + radius`.
+		Caching has BR2_LV_DRAW_SW_SHADOW_CACHE_SIZE^2 RAM cost.
+
+config BR2_LV_DRAW_SW_CIRCLE_CACHE_SIZE
+	int "Set number of maximally cached circle data"
+	depends on BR2_LV_DRAW_SW_COMPLEX
+	default 4
+	help
+		The circumference of 1/4 circle are saved for anti-aliasing
+		radius * 4 bytes are used per circle (the most often used
+		radiuses are saved).
+		Set to 0 to disable caching.
+
+choice BR2_LV_USE_DRAW_SW_ASM
+	prompt "Asm mode in sw draw"
+	default BR2_LV_DRAW_SW_ASM_NONE
+	depends on BR2_LV_USE_DRAW_SW
+	help
+		ASM mode to be used
+
+	config BR2_LV_DRAW_SW_ASM_NONE
+		bool "0: NONE"
+	config BR2_LV_DRAW_SW_ASM_NEON
+		bool "1: NEON"
+	config BR2_LV_DRAW_SW_ASM_HELIUM
+		bool "2: HELIUM"
+	config BR2_LV_DRAW_SW_ASM_CUSTOM
+		bool "255: CUSTOM"
+endchoice
+
+config BR2_LV_USE_DRAW_SW_ASM
+	int
+	default 0 if BR2_LV_DRAW_SW_ASM_NONE
+	default 1 if BR2_LV_DRAW_SW_ASM_NEON
+	default 2 if BR2_LV_DRAW_SW_ASM_HELIUM
+	default 255 if BR2_LV_DRAW_SW_ASM_CUSTOM
+
+config BR2_LV_DRAW_SW_ASM_CUSTOM_INCLUDE
+	string "Set the custom asm include file"
+	default ""
+	depends on BR2_LV_DRAW_SW_ASM_CUSTOM
+
+config BR2_LV_USE_DRAW_SDL
+	bool "Draw using cached SDL textures"
+	default n
+	help
+		Uses SDL renderer API
+
+config BR2_LV_USE_VECTOR_GRAPHIC
+	bool "Use Vector Graphic APIs"
+	default n
+	select BR2_LV_USE_MATRIX
+	help
+		Enable drawing support vector graphic APIs.
+

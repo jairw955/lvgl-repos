@@ -1,0 +1,63 @@
+config BR2_LV_ENABLE_GLOBAL_CUSTOM
+	bool "Enable 'lv_global' customization"
+
+config BR2_LV_GLOBAL_CUSTOM_INCLUDE
+	string "Header to include for the custom 'lv_global' function"
+	depends on BR2_LV_ENABLE_GLOBAL_CUSTOM
+	default "lv_global.h"
+
+config BR2_LV_CACHE_DEF_SIZE
+	int "Default image cache size. 0 to disable caching"
+	default 0
+	depends on BR2_LV_USE_DRAW_SW
+	help
+		If only the built-in image formats are used there is no real advantage of caching.
+		(I.e. no new image decoder is added).
+
+		With complex image decoders (e.g. PNG or JPG) caching can
+		save the continuous open/decode of images.
+		However the opened images might consume additional RAM.
+
+config BR2_LV_IMAGE_HEADER_CACHE_DEF_CNT
+	int "Default image header cache count. 0 to disable caching"
+	default 0
+	depends on BR2_LV_USE_DRAW_SW
+	help
+		If only the built-in image formats are used there is no real advantage of caching.
+		(I.e. no new image decoder is added).
+
+		With complex image decoders (e.g. PNG or JPG) caching can
+		save the continuous getting header information of images.
+		However the records of opened images headers might consume additional RAM.
+
+config BR2_LV_OBJ_STYLE_CACHE
+	bool "Use cache to speed up getting object style properties"
+	default n
+	help
+		Add 2 x 32 bit variables to each lv_obj_t to speed up getting style properties
+
+config BR2_LV_USE_OBJ_ID
+	bool "Add id field to obj"
+	default n
+
+config BR2_LV_OBJ_ID_AUTO_ASSIGN
+	bool "Automatically assign an ID when obj is created"
+	default y
+	depends on BR2_LV_USE_OBJ_ID
+
+config BR2_LV_USE_OBJ_ID_BUILTIN
+	bool "Use builtin method to deal with obj ID"
+	default n
+	depends on BR2_LV_USE_OBJ_ID
+
+config BR2_LV_USE_OBJ_PROPERTY
+	bool "Use obj property set/get API"
+	default n
+
+config BR2_LV_USE_OBJ_PROPERTY_NAME
+	bool "Use name to access property"
+	default n
+	depends on BR2_LV_USE_OBJ_PROPERTY
+	help
+		Add a name table to every widget class, so the property can be accessed by name.
+		Note, the const table will increase flash usage.

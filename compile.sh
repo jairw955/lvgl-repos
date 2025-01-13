@@ -147,7 +147,7 @@ fi
 cp ./configs/${lvgl_version}.base .config
 
 if [ "$demo" == "menuconfig" ];then
-    ./configs/mconf ./configs/Kconfig.${lvgl_version}
+    ./configs/mconf ./configs/Kconfig
     echo "lvgl_version=${lvgl_version}" > .version
     exit
 fi

@@ -1,0 +1,11 @@
+config BR2_LV_USE_USER_DATA
+	bool "Add a 'user_data' to drivers and objects."
+	default y
+
+config BR2_LV_ENABLE_GC
+	bool "Enable garbage collector"
+
+config BR2_LV_GC_INCLUDE
+	string "Header to include for the garbage collector related things"
+	depends on BR2_LV_ENABLE_GC
+	default "gc.h"
