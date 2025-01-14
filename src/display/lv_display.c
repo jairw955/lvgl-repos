@@ -26,6 +26,7 @@
 /*********************
  *      DEFINES
  *********************/
+#define _draw_info LV_GLOBAL_DEFAULT()->draw_info
 #define disp_def LV_GLOBAL_DEFAULT()->disp_default
 #define disp_ll_p &(LV_GLOBAL_DEFAULT()->disp_ll)
 
@@ -76,13 +77,7 @@ lv_display_t * lv_display_create(int32_t hor_res, int32_t ver_res)
     disp->antialiasing     = LV_COLOR_DEPTH > 8 ? 1 : 0;
     disp->dpi              = LV_DPI_DEF;
     disp->color_format = LV_COLOR_FORMAT_NATIVE;
-
-
-#if defined(LV_DRAW_SW_DRAW_UNIT_CNT)
-    disp->tile_cnt = LV_DRAW_SW_DRAW_UNIT_CNT;
-#else
-    disp->tile_cnt = 1;
-#endif
+    disp->tile_cnt = _draw_info.unit_cnt;
 
     disp->layer_head = lv_malloc_zeroed(sizeof(lv_layer_t));
     LV_ASSERT_MALLOC(disp->layer_head);
