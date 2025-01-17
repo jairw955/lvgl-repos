@@ -17,15 +17,6 @@ extern "C" {
 
 #if LV_USE_LINUX_DRM
 
-#ifndef LV_DRM_USE_RGA
-#define LV_DRM_USE_RGA 0
-#endif
-
-#if LV_DRM_USE_RGA
-#include <rga/im2d.h>
-#include <rga/rga.h>
-#include <rga/RgaApi.h>
-#endif
 /*********************
  *      DEFINES
  *********************/
