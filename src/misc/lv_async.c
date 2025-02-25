@@ -65,6 +65,29 @@ lv_result_t lv_async_call(lv_async_cb_t async_xcb, void * user_data)
     return LV_RESULT_OK;
 }
 
+lv_result_t lv_async_call_delay(lv_async_cb_t async_xcb, void * user_data, int delay)
+{
+    /*Allocate an info structure*/
+    lv_async_info_t * info = lv_malloc(sizeof(lv_async_info_t));
+
+    if(info == NULL)
+        return LV_RESULT_INVALID;
+
+    /*Create a new timer*/
+    lv_timer_t * timer = lv_timer_create(lv_async_timer_cb, delay, info);
+
+    if(timer == NULL) {
+        lv_free(info);
+        return LV_RESULT_INVALID;
+    }
+
+    info->cb = async_xcb;
+    info->user_data = user_data;
+
+    lv_timer_set_repeat_count(timer, 1);
+    return LV_RESULT_OK;
+}
+
 lv_result_t lv_async_call_cancel(lv_async_cb_t async_xcb, void * user_data)
 {
     lv_timer_t * timer = lv_timer_get_next(NULL);
