@@ -225,17 +225,15 @@ static void perf_observer_cb(lv_observer_t * observer, lv_subject_t * subject)
     LV_UNUSED(label);
     LV_LOG("sysmon: "
            "%" LV_PRIu32 " FPS (refr_cnt: %" LV_PRIu32 " | redraw_cnt: %" LV_PRIu32"), "
-           "refr %" LV_PRIu32 "ms (render %" LV_PRIu32 "ms | flush %" LV_PRIu32 "ms), "
-           "CPU %" LV_PRIu32 "%%\n",
+           "refr %" LV_PRIu32 "ms (render %" LV_PRIu32 "ms | flush %" LV_PRIu32 "ms)\n",
            perf->calculated.fps, perf->measured.refr_cnt, perf->measured.render_cnt,
-           perf->calculated.refr_avg_time, perf->calculated.render_avg_time, perf->calculated.flush_avg_time,
-           perf->calculated.cpu);
+           perf->calculated.refr_avg_time, perf->calculated.render_avg_time, perf->calculated.flush_avg_time);
 #else
     lv_label_set_text_fmt(
         label,
-        "%" LV_PRIu32" FPS, %" LV_PRIu32 "%% CPU\n"
+        "%" LV_PRIu32" FPS\n"
         "%" LV_PRIu32" ms (%" LV_PRIu32" | %" LV_PRIu32")",
-        perf->calculated.fps, perf->calculated.cpu,
+        perf->calculated.fps,
         perf->calculated.render_avg_time + perf->calculated.flush_avg_time,
         perf->calculated.render_avg_time, perf->calculated.flush_avg_time
     );
