@@ -42,6 +42,7 @@ typedef void (*lv_async_cb_t)(void *);
  * @param user_data custom parameter
  */
 lv_result_t lv_async_call(lv_async_cb_t async_xcb, void * user_data);
+lv_result_t lv_async_call_delay(lv_async_cb_t async_xcb, void * user_data, int delay);
 
 /**
  * Cancel an asynchronous function call
