@@ -33,14 +33,6 @@
 #define LV_NEMA_HAL_CUSTOM          0
 #define LV_NEMA_HAL_STM32           1
 
-/** Handle special Kconfig options. */
-#ifndef LV_KCONFIG_IGNORE
-    #include "lv_conf_kconfig.h"
-    #if defined(CONFIG_LV_CONF_SKIP) && !defined(LV_CONF_SKIP)
-        #define LV_CONF_SKIP
-    #endif
-#endif
-
 /* If "lv_conf.h" is available from here try to use it later. */
 #ifdef __has_include
     #if __has_include("lv_conf.h")
@@ -63,6 +55,14 @@
         /* #include will sometimes silently fail when __has_include is used */
         /* https://gcc.gnu.org/bugzilla/show_bug.cgi?id=80753 */
         #pragma message("Possible failure to include lv_conf.h, please read the comment in this file if you get errors")
+    #endif
+#endif
+
+/** Handle special Kconfig options. */
+#ifndef LV_KCONFIG_IGNORE
+    #include "lv_conf_kconfig.h"
+    #if defined(CONFIG_LV_CONF_SKIP) && !defined(LV_CONF_SKIP)
+        #define LV_CONF_SKIP
     #endif
 #endif
 
