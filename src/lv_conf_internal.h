@@ -10,14 +10,6 @@
 
 #include <stdint.h>
 
-/* Handle special Kconfig options */
-#ifndef LV_KCONFIG_IGNORE
-    #include "lv_conf_kconfig.h"
-    #ifdef CONFIG_LV_CONF_SKIP
-        #define LV_CONF_SKIP
-    #endif
-#endif
-
 /*If "lv_conf.h" is available from here try to use it later.*/
 #ifdef __has_include
     #if __has_include("lv_conf.h")
@@ -44,6 +36,14 @@
         /* #include will sometimes silently fail when __has_include is used */
         /* https://gcc.gnu.org/bugzilla/show_bug.cgi?id=80753 */
         #pragma message("Possible failure to include lv_conf.h, please read the comment in this file if you get errors")
+    #endif
+#endif
+
+/* Handle special Kconfig options */
+#ifndef LV_KCONFIG_IGNORE
+    #include "lv_conf_kconfig.h"
+    #ifdef CONFIG_LV_CONF_SKIP
+        #define LV_CONF_SKIP
     #endif
 #endif
 
