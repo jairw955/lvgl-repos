@@ -143,6 +143,7 @@ static int bo_map(struct device *dev, struct drm_bo *bo)
         bo->ptr = NULL;
         return -1;
     }
+    memset(bo->ptr, 0, bo->size);
 
     return 0;
 }
@@ -1247,6 +1248,7 @@ void disp_init(int hor_res, int ver_res)
     c_RkRgaInit();
 #else
     drm_buff = malloc(buf_w * buf_h * (LV_COLOR_DEPTH >> 3));
+    memset(drm_buff, 0, buf_w * buf_h * (LV_COLOR_DEPTH >> 3));
     lcd_sw = lcd_w;
 #endif
     vop_buf[0] = malloc_drm_bo(lcd_w, lcd_h, format);
