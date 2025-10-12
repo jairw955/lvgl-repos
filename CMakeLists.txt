@@ -7,6 +7,7 @@ add_definitions(-g -DLV_CONF_INCLUDE_SIMPLE=1)
 include_directories(
 	${PROJECT_SOURCE_DIR}/sys/
 	${PROJECT_SOURCE_DIR}/common/
+	${PROJECT_SOURCE_DIR}/common/cJSON
 	)
 
 link_libraries(lvgl pthread m freetype SDL2)
@@ -36,6 +37,7 @@ else()
 endif()
 aux_source_directory(${PROJECT_SOURCE_DIR}/sys SRCS)
 aux_source_directory(${PROJECT_SOURCE_DIR}/common SRCS)
+aux_source_directory(${PROJECT_SOURCE_DIR}/common/cJSON SRCS)
 
 add_subdirectory(demos)
 
