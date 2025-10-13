@@ -290,7 +290,7 @@ static void window_create(monitor_t * m)
 #if LV_COLOR_SCREEN_TRANSP && defined(SDL_HINT_VIDEO_EGL_ALLOW_TRANSPARENCY)
     SDL_SetHint(SDL_HINT_VIDEO_EGL_ALLOW_TRANSPARENCY, "1");
 #endif
-//    SDL_SetHint( SDL_HINT_RENDER_SCALE_QUALITY, "1");
+    SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "linear");
     SDL_Rect rect;
 
     if (!m->hor_res || !m->ver_res) {
