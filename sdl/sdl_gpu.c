@@ -64,7 +64,7 @@ typedef struct {
 /**********************
  *  STATIC PROTOTYPES
  **********************/
-static void window_create(monitor_t * m);
+static void window_create(monitor_t * m, uint64_t flags);
 static void window_update(lv_disp_drv_t *disp_drv, void * buf);
 static void monitor_sdl_clean_up(void);
 static void sdl_event_handler(lv_timer_t * t);
@@ -98,14 +98,14 @@ void sdl_init(void)
     lv_timer_create(sdl_event_handler, 1, NULL);
 }
 
-void sdl_disp_drv_init(lv_disp_drv_t * disp_drv, lv_coord_t hor_res, lv_coord_t ver_res)
+void sdl_disp_drv_init(lv_disp_drv_t * disp_drv, lv_coord_t hor_res, lv_coord_t ver_res, uint64_t flags)
 {
     int rotated = disp_drv->rotated <= LV_DISP_ROT_270 ? disp_drv->rotated : LV_DISP_ROT_NONE;
     monitor_t *m = lv_mem_alloc(sizeof(monitor_t));
     m->hor_res = hor_res;
     m->ver_res = ver_res;
     m->rotated = rotated;
-    window_create(m);
+    window_create(m, flags);
     hor_res = m->hor_res;
     ver_res = m->ver_res;
     lv_disp_drv_init(disp_drv);
@@ -282,7 +282,7 @@ static void monitor_sdl_clean_up(void)
     SDL_Quit();
 }
 
-static void window_create(monitor_t * m)
+static void window_create(monitor_t * m, uint64_t ext_flags)
 {
 #if USE_SDL_OPENGL
     SDL_GLContext previousContext;
@@ -308,13 +308,10 @@ static void window_create(monitor_t * m)
         m->d_ver_res = m->ver_res;
     }
     SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 1);
+    SDL_WindowFlags flags = SDL_WINDOW_OPENGL | ext_flags;
     m->window = SDL_CreateWindow("TFT Simulator",
                               SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
-                              m->hor_res * SDL_ZOOM, m->ver_res * SDL_ZOOM,
-#ifndef SDL_DIS_FULLSCREEN
-                              SDL_WINDOW_FULLSCREEN |
-#endif
-                              SDL_WINDOW_OPENGL);
+                              m->hor_res * SDL_ZOOM, m->ver_res * SDL_ZOOM, flags);
 
     m->drv_param.renderer = SDL_CreateRenderer(m->window, -1, SDL_RENDERER_ACCELERATED);
 
