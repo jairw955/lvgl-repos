@@ -30,3 +30,6 @@ fruit_ninja:
 
 ai_home:
 	./compile.sh app -a -s ai_home
+
+ai_home_ui:
+	./compile.sh app -a -s ai_home_ui
