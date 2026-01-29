@@ -206,7 +206,7 @@ static unsigned int create_texture(int32_t w, int32_t h)
     GL_CALL(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB565, w, h, 0, GL_RGB, GL_UNSIGNED_SHORT_5_6_5,
                          NULL));
 #elif LV_COLOR_DEPTH == 32
-    GL_CALL(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_BGRA, GL_UNSIGNED_BYTE, NULL));
+    GL_CALL(glTexImage2D(GL_TEXTURE_2D, 0, GL_BGRA_EXT, w, h, 0, GL_BGRA_EXT, GL_UNSIGNED_BYTE, NULL));
 #else
 #error("Unsupported color format")
 #endif
