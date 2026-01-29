@@ -5,9 +5,18 @@
 
 #include <stdlib.h>
 #include <lvgl/lvgl.h>
+
+#if defined(LV_USE_LINUX_DRM) && LV_USE_LINUX_DRM
 #include <lvgl/src/drivers/display/drm/lv_linux_drm.h>
-#include <lvgl/src/drivers/display/rkadk/rkadk.h>
+#endif
+
+#if defined(LV_USE_SDL) && LV_USE_SDL
 #include <lvgl/src/drivers/sdl/lv_sdl_window.h>
+#endif
+
+#if defined(LV_USE_RKADK) && LV_USE_RKADK
+#include <lvgl/src/drivers/display/rkadk/rkadk.h>
+#endif
 
 void lv_port_disp_init(lv_coord_t hor_res, lv_coord_t ver_res, int rot)
 {
