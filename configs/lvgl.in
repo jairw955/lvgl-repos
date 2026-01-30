@@ -1,10 +1,8 @@
 export LVGL_CFG="-DLV_USE_GPU_SDL=y \
-                 -DLV_USE_DEMO_WIDGETS=1 \
-                 -DLV_USE_DEMO_KEYPAD_AND_ENCODER=1 \
-                 -DLV_USE_DEMO_BENCHMARK=1 \
-                 -DLV_USE_DEMO_STRESS=1 \
-                 -DLV_USE_DEMO_MUSIC=1 \
-                 -DBUILD_SHARED_LIBS=OFF "
+                 -DBUILD_SHARED_LIBS=OFF \
+                 -DCONFIG_LV_BUILD_EXAMPLES=OFF \
+                 -DCONFIG_LV_USE_THORVG_INTERNAL=OFF \
+                 -DCONFIG_LV_USE_PRIVATE_API=ON "
 
 export LV_DRV_CFG="-DLV_DRV_USE_SDL_GPU=y \
                    -DLV_DRV_USE_OPENGL=n \
