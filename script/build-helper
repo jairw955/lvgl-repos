@@ -1,0 +1,37 @@
+#!/bin/bash
+# Build helper functions for LVGL build scripts
+# This file can be sourced by other scripts to use common functions
+
+# 检查配置文件中是否启用了指定配置项
+# 参数: $1 - 配置项名称 (如 BR2_PACKAGE_LVGL_DISABLE_THORVG)
+# 返回: 0 如果配置启用(y), 1 如果未启用
+check_config_enabled(){
+    local config_name=$1
+    # 如果 ROOT_PATH 未设置，尝试从调用者脚本的位置推断
+    local root_path=${ROOT_PATH}
+    if [ -z "$root_path" ]; then
+        # 尝试从当前工作目录或脚本位置推断
+        if [ -f ".config" ]; then
+            root_path="$(pwd)"
+        else
+            root_path=$(dirname $(dirname $(realpath ${BASH_SOURCE[0]})))
+        fi
+    fi
+    if [ -f "$root_path/.config" ]; then
+        grep -q "^${config_name}=y$" "$root_path/.config"
+        return $?
+    fi
+    return 1
+}
+
+# 如果配置启用，则添加编译选项到 FLAGS
+# 参数: $1 - 配置项名称
+#      $2 - 要添加的编译选项 (如 -DLV_CONF_BUILD_DISABLE_THORVG_INTERNAL=1)
+# 注意: 需要在使用前设置 FLAGS 变量
+add_flag_if_config(){
+    local config_name=$1
+    local flag=$2
+    if check_config_enabled "$config_name"; then
+        FLAGS="${FLAGS} ${flag}"
+    fi
+}
