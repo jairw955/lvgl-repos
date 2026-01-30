@@ -44,7 +44,9 @@ void lv_port_disp_init(lv_coord_t hor_res, lv_coord_t ver_res, int rot)
 
 #if defined(LV_USE_LINUX_DRM) && LV_USE_LINUX_DRM
     LV_LOG_USER("LV_USE_LINUX_DRM");
-    disp = lv_drm_disp_create(rot);
+    const char *device = "/dev/dri/card0";
+    disp = lv_linux_drm_create();
+    lv_linux_drm_set_file(disp, device, -1);
 #endif
 
 #if defined(LV_USE_SDL) && LV_USE_SDL

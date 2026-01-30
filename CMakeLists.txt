@@ -8,9 +8,16 @@ include_directories(
 	${PROJECT_SOURCE_DIR}/sys/
 	${PROJECT_SOURCE_DIR}/common/
 	${PROJECT_SOURCE_DIR}/common/cJSON
+	${CMAKE_SYSROOT}/usr/include/libdrm
 	)
 
-link_libraries(lvgl pthread m freetype SDL2)
+link_libraries(lvgl pthread m freetype drm)
+if (LV_DRV_USE_SDL_GPU)
+	link_libraries(SDL2)
+endif()
+if (LV_DRV_USE_OPENGLES)
+	link_libraries(GLESv2 GL gbm)
+endif()
 
 if (LVGL_V9)
 	add_definitions(-DLVGL_V9=1)

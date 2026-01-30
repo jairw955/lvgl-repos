@@ -9,9 +9,6 @@
 
 #include "evdev.h"
 
-static lv_indev_t *indev_touchpad = NULL;
-static lv_indev_t *indev_sdl = NULL;
-
 #if defined(USE_SENSOR) && USE_SENSOR
 static lv_indev_t *lsensor = NULL;
 static lv_indev_t *psensor = NULL;
@@ -29,20 +26,24 @@ lv_indev_t *lv_port_indev_get_psensor(void)
 
 void lv_port_indev_init(int rot)
 {
-    lv_disp_t *disp;
-
 #if defined(USE_EVDEV) && USE_EVDEV
-    disp = lv_display_get_default();
+    lv_disp_t *disp = lv_display_get_default();
     if (evdev_init(disp, rot) == 0)
     {
-        indev_touchpad = lv_indev_create();
+        lv_indev_t *indev_touchpad = lv_indev_create();
         lv_indev_set_type(indev_touchpad, LV_INDEV_TYPE_POINTER);
         lv_indev_set_read_cb(indev_touchpad, evdev_read);
     }
 #endif
 
+#if defined(LV_USE_LIBINPUT) && LV_USE_LIBINPUT
+    char *path = lv_libinput_find_dev(LV_LIBINPUT_CAPABILITY_TOUCH | LV_LIBINPUT_CAPABILITY_POINTER,
+                                      true);
+    lv_indev_t *indev_libinput = lv_libinput_create(LV_INDEV_TYPE_POINTER, path);
+#endif
+
 #if defined(LV_USE_SDL) && LV_USE_SDL
-    indev_sdl = lv_sdl_mouse_create();
+    lv_indev_t *indev_sdl = lv_sdl_mouse_create();
 #endif
 
 #if defined(USE_SENSOR) && USE_SENSOR
