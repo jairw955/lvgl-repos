@@ -44,7 +44,7 @@ void lv_port_disp_init(lv_coord_t hor_res, lv_coord_t ver_res, int rot)
     monitor_init();
     SDL_LogSetPriority(SDL_LOG_CATEGORY_APPLICATION, SDL_LOG_PRIORITY_WARN);
     disp_drv.rotated = lvgl_rot;
-    sdl_disp_drv_init(&disp_drv, hor_res, ver_res);
+    sdl_disp_drv_init(&disp_drv, hor_res, ver_res, 0);
 
     disp = lv_disp_drv_register(&disp_drv);
 #endif
