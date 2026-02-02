@@ -5,17 +5,17 @@
 
 static int quit = 0;
 
-#ifndef USE_DEMO_EEZ
-#define USE_DEMO_EEZ 0
+#ifndef LV_USE_DEMO_EEZ
+#define LV_USE_DEMO_EEZ 0
 #endif
 
-#if USE_DEMO_WIDGETS
+#if LV_USE_DEMO_WIDGETS
 extern void lv_demo_widgets(void);
-#elif USE_DEMO_BENCHMARK
+#elif LV_USE_DEMO_BENCHMARK
 extern void lv_demo_benchmark(void);
-#elif USE_DEMO_MUSIC
+#elif LV_USE_DEMO_MUSIC
 extern void lv_demo_music(void);
-#elif USE_DEMO_EEZ
+#elif LV_USE_DEMO_EEZ
 extern void ui_init();
 extern void ui_tick();
 #endif
@@ -35,13 +35,13 @@ int main(int argc, char **argv)
     lv_port_init(0, 0, 0);
 #endif
 
-#if USE_DEMO_WIDGETS
+#if LV_USE_DEMO_WIDGETS
     lv_demo_widgets();
-#elif USE_DEMO_BENCHMARK
+#elif LV_USE_DEMO_BENCHMARK
     lv_demo_benchmark();
-#elif USE_DEMO_MUSIC
+#elif LV_USE_DEMO_MUSIC
     lv_demo_music();
-#elif USE_DEMO_EEZ
+#elif LV_USE_DEMO_EEZ
     ui_init();
 #endif
 
@@ -49,7 +49,7 @@ int main(int argc, char **argv)
     {
         lv_task_handler();
         usleep(100);
-#if USE_DEMO_EEZ
+#if LV_USE_DEMO_EEZ
         ui_tick();
 #endif
     }
