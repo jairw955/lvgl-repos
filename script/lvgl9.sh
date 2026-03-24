@@ -17,11 +17,11 @@ append_host_arch_cmake_flags LVGL_FLAGS || exit 1
 # 检查版本配置，如果未设置则拷贝默认配置
 check_lvgl9_config(){
     if ! check_config_enabled "BR2_PACKAGE_LVGL_VERSION_9"; then
-        echo "BR2_PACKAGE_LVGL_VERSION_9 not set, copying configs/lvgl9.base to .config"
-        if [ -f "$ROOT_PATH/configs/lvgl9.base" ]; then
-            cp "$ROOT_PATH/configs/lvgl9.base" "$ROOT_PATH/.config"
+        echo "BR2_PACKAGE_LVGL_VERSION_9 not set, copying configs/lvgl9_defconfig to .config"
+        if [ -f "$ROOT_PATH/configs/lvgl9_defconfig" ]; then
+            cp "$ROOT_PATH/configs/lvgl9_defconfig" "$ROOT_PATH/.config"
         else
-            echo "Error: configs/lvgl9.base not found"
+            echo "Error: configs/lvgl9_defconfig not found"
             exit 1
         fi
     fi

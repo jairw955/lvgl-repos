@@ -59,12 +59,12 @@ if [ "$TARGET" = "menu" ]; then
     fi
     exit 0
 elif [ "$TARGET" = "menu8" ]; then
-    # 拷贝 lvgl8.base 到 .config，然后打开 menuconfig
-    if [ -f "$ROOT_PATH/configs/lvgl8.base" ]; then
-        cp "$ROOT_PATH/configs/lvgl8.base" "$ROOT_PATH/.config"
-        echo "Copied configs/lvgl8.base to .config"
+    # 拷贝 lvgl8_defconfig 到 .config，然后打开 menuconfig
+    if [ -f "$ROOT_PATH/configs/lvgl8_defconfig" ]; then
+        cp "$ROOT_PATH/configs/lvgl8_defconfig" "$ROOT_PATH/.config"
+        echo "Copied configs/lvgl8_defconfig to .config"
     else
-        echo "Error: configs/lvgl8.base not found"
+        echo "Error: configs/lvgl8_defconfig not found"
         exit 1
     fi
     if [ -f "$ROOT_PATH/configs/mconf" ]; then
@@ -75,12 +75,12 @@ elif [ "$TARGET" = "menu8" ]; then
     fi
     exit 0
 elif [ "$TARGET" = "menu9" ]; then
-    # 拷贝 lvgl9.base 到 .config，然后打开 menuconfig
-    if [ -f "$ROOT_PATH/configs/lvgl9.base" ]; then
-        cp "$ROOT_PATH/configs/lvgl9.base" "$ROOT_PATH/.config"
-        echo "Copied configs/lvgl9.base to .config"
+    # 拷贝 lvgl9_defconfig 到 .config，然后打开 menuconfig
+    if [ -f "$ROOT_PATH/configs/lvgl9_defconfig" ]; then
+        cp "$ROOT_PATH/configs/lvgl9_defconfig" "$ROOT_PATH/.config"
+        echo "Copied configs/lvgl9_defconfig to .config"
     else
-        echo "Error: configs/lvgl9.base not found"
+        echo "Error: configs/lvgl9_defconfig not found"
         exit 1
     fi
     if [ -f "$ROOT_PATH/configs/mconf" ]; then

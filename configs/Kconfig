@@ -11,4 +11,12 @@ choice BR2_PACKAGE_LVGL_VERSION
 		bool "v9.x"
 endchoice
 
-source "configs/Config.options"
+# source "configs/Config.options"
+if BR2_PACKAGE_LVGL_VERSION_8
+	source "configs/lvgl8/lvgl/Config.in"
+	source "configs/lvgl8/lv_drivers/Config.in"
+endif
+
+if BR2_PACKAGE_LVGL_VERSION_9
+	source "configs/lvgl9/Config.in"
+endif

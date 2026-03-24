@@ -57,63 +57,10 @@ menu "LVGL configuration"
 		config BR2_LV_DRAW_SW_DRAW_UNIT_CNT
 			int "Number of draw units"
 			default 1
-			depends on BR2_LV_USE_DRAW_SW
+			depends on BR2_LV_USE_DRAW_SW && BR2_PACKAGE_LVGL_VERSION_9
 			help
 				> 1 requires an operating system enabled in `LV_USE_OS`
 				> 1 means multiply threads will render the screen in parallel
-
-		config BR2_LV_USE_DRAW_RK_TRANSFORM
-			bool "Enable RK transform"
-			default n
-			depends on BR2_LV_USE_DRAW_SW && BR2_PACKAGE_LVGL_VERSION_9
-			help
-				Enable rk transform.
-
-		config BR2_LV_DRAW_RK_TRANSFORM_SCALER_CORES
-			int "RK transform scaler cores"
-			default -1
-			depends on BR2_LV_USE_DRAW_RK_TRANSFORM
-			help
-				RK transform scaler cores.
-
-		choice
-			prompt "RK transform scaler method"
-			default BR2_LV_DRAW_RK_TRANSFORM_SCALER_METHOD_NEAREST
-			depends on BR2_LV_USE_DRAW_RK_TRANSFORM
-			help
-				RK transform scaler method.
-
-			config BR2_LV_DRAW_RK_TRANSFORM_SCALER_METHOD_NEAREST
-				bool "nearest"
-			config BR2_LV_DRAW_RK_TRANSFORM_SCALER_METHOD_BILINEAR
-				bool "bilinear"
-		endchoice
-
-		config BR2_LV_DRAW_RK_TRANSFORM_SCALER_METHOD
-			int
-			default 0 if BR2_LV_DRAW_RK_TRANSFORM_SCALER_METHOD_NEAREST
-			default 1 if BR2_LV_DRAW_RK_TRANSFORM_SCALER_METHOD_BILINEAR
-			depends on BR2_LV_USE_DRAW_RK_TRANSFORM
-			help
-				RK transform scaler method.
-
-		choice
-			prompt "Asm mode in sw draw"
-			default BR2_LV_DRAW_SW_ASM_NEON if BR2_ARM_CPU_HAS_NEON
-			default BR2_LV_DRAW_SW_ASM_NONE
-			depends on BR2_LV_USE_DRAW_SW && BR2_PACKAGE_LVGL_VERSION_9
-			help
-				ASM mode to be used
-
-			config BR2_LV_DRAW_SW_ASM_NONE
-				bool "0: NONE"
-			config BR2_LV_DRAW_SW_ASM_NEON
-				bool "1: NEON"
-			config BR2_LV_DRAW_SW_ASM_HELIUM
-				bool "2: HELIUM"
-			config BR2_LV_DRAW_SW_ASM_CUSTOM
-				bool "255: CUSTOM"
-		endchoice
 
 		config BR2_LV_USE_DRAW_SW_ASM
 			int
@@ -540,6 +487,22 @@ menu "LVGL configuration"
 
 		config LV_USE_RLOTTIE
 			bool "Lottie library"
+
+		config BR2_LV_USE_THORVG
+		bool "ThorVG library"
+		choice
+			prompt "Use ThorVG config"
+			depends on BR2_LV_USE_THORVG
+			default BR2_LV_USE_THORVG_INTERNAL
+			config BR2_LV_USE_THORVG_INTERNAL
+				bool "Use ThorVG internal"
+			config BR2_LV_USE_THORVG_EXTERNAL
+				bool "Use ThorVG external"
+		endchoice
+		config BR2_PACKAGE_LVGL_DISABLE_THORVG
+			bool
+			default y if !BR2_LV_USE_THORVG
+
 	endmenu
 
 	menu "Others"
@@ -735,42 +698,6 @@ menu "LVGL configuration"
 			bool "Use the wayland client to open a window and handle inputs on Linux or BSD"
 			depends on BR2_PACKAGE_WAYLAND && BR2_PACKAGE_LVGL_VERSION_9
 			default n
-		config BR2_LV_WAYLAND_WINDOW_DECORATIONS
-			bool "Draw client side window decorations, only necessary on Mutter (GNOME)"
-			depends on BR2_LV_USE_WAYLAND
-			default n
-		config BR2_LV_WAYLAND_BUF_COUNT
-			int "Use 1 for single buffer with partial render mode or 2 for double buffer with full render mode"
-			depends on BR2_LV_USE_WAYLAND
-			default 1
-		choice
-			prompt "Wayland rendering mode"
-			depends on BR2_LV_USE_WAYLAND
-			default BR2_LV_WAYLAND_RENDER_MODE_PARTIAL
-
-			config BR2_LV_WAYLAND_RENDER_MODE_PARTIAL
-				bool "Use the buffer(s) to render the screen is smaller parts"
-				depends on !BR2_LV_WAYLAND_USE_DMABUF
-
-			config BR2_LV_WAYLAND_RENDER_MODE_DIRECT
-				bool "Only the changed areas will be updated with 2 screen sized buffers"
-				depends on BR2_LV_WAYLAND_USE_DMABUF
-
-			config BR2_LV_WAYLAND_RENDER_MODE_FULL
-				bool "Always redraw the whole screen even if only one pixel has been changed with 2 screen sized buffers"
-				depends on BR2_LV_WAYLAND_USE_DMABUF
-		endchoice
-
-		config BR2_LV_WAYLAND_RENDER_MODE
-			int
-			depends on BR2_LV_USE_WAYLAND
-			default 0 if BR2_LV_WAYLAND_RENDER_MODE_PARTIAL
-			default 1 if BR2_LV_WAYLAND_RENDER_MODE_DIRECT
-			default 2 if BR2_LV_WAYLAND_RENDER_MODE_FULL
-
-		config BR2_LV_WAYLAND_USE_DMABUF
-			bool "Use DMA buffers for frame buffers"
-			depends on BR2_LV_USE_WAYLAND && BR2_LV_USE_G2D
 
 		config BR2_LV_USE_LINUX_DRM
 			bool "Use Linux DRM device"
@@ -833,111 +760,114 @@ menu "LVGL configuration"
 			default y if !BR2_LV_BUILD_EXAMPLES
 	endmenu
 
-	menuconfig BR2_PACKAGE_LVGL_ENABLE_LV_DEMOS
-		bool "Demos"
-		default n
+	menu "Demos"
+		config BR2_PACKAGE_LVGL_ENABLE_LV_DEMOS
+			bool
+			default n
 
-		if BR2_PACKAGE_LVGL_ENABLE_LV_DEMOS
-			config BR2_LV_USE_DEMO_WIDGETS
-				bool "Show some widget"
-				select BR2_LV_FONT_MONTSERRAT_12
-				select BR2_LV_FONT_MONTSERRAT_14
-				select BR2_LV_FONT_MONTSERRAT_16
-				select BR2_LV_FONT_MONTSERRAT_18
-				select BR2_LV_FONT_MONTSERRAT_20
-				select BR2_LV_FONT_MONTSERRAT_24
-				default n
+		config BR2_LV_USE_DEMO_WIDGETS
+			bool "Show some widget"
+			select BR2_LV_FONT_MONTSERRAT_12
+			select BR2_LV_FONT_MONTSERRAT_14
+			select BR2_LV_FONT_MONTSERRAT_16
+			select BR2_LV_FONT_MONTSERRAT_18
+			select BR2_LV_FONT_MONTSERRAT_20
+			select BR2_LV_FONT_MONTSERRAT_24
+			select BR2_PACKAGE_LVGL_ENABLE_LV_DEMOS
+			default n
 
-			config BR2_LV_DEMO_WIDGETS_SLIDESHOW
-				bool "Enable slide show"
-				depends on BR2_LV_USE_DEMO_WIDGETS && BR2_PACKAGE_LVGL_VERSION_8
-				default n
+		config BR2_LV_DEMO_WIDGETS_SLIDESHOW
+			bool "Enable slide show"
+			depends on BR2_LV_USE_DEMO_WIDGETS && BR2_PACKAGE_LVGL_VERSION_8
+			select BR2_PACKAGE_LVGL_ENABLE_LV_DEMOS
+			default n
 
-			config BR2_LV_USE_DEMO_KEYPAD_AND_ENCODER
-				bool "Demonstrate the usage of encoder and keyboard"
-				default n
+		config BR2_LV_USE_DEMO_KEYPAD_AND_ENCODER
+			bool "Demonstrate the usage of encoder and keyboard"
+			select BR2_PACKAGE_LVGL_ENABLE_LV_DEMOS
+			default n
 
-			config BR2_LV_USE_DEMO_BENCHMARK
-				bool "Benchmark your system"
-				default n
-				select BR2_LV_FONT_MONTSERRAT_14
-				select BR2_LV_FONT_MONTSERRAT_24
-				select BR2_LV_USE_DEMO_WIDGETS if BR2_PACKAGE_LVGL_VERSION_9
-			config BR2_LV_DEMO_BENCHMARK_RGB565A8
-				bool "Use RGB565A8 images with 16 bit color depth instead of ARGB8565"
-				depends on BR2_LV_USE_DEMO_BENCHMARK && BR2_PACKAGE_LVGL_VERSION_8
-				default n
+		config BR2_LV_USE_DEMO_BENCHMARK
+			bool "Benchmark your system"
+			default n
+			select BR2_LV_FONT_MONTSERRAT_14
+			select BR2_LV_FONT_MONTSERRAT_20
+			select BR2_LV_FONT_MONTSERRAT_24
+			select BR2_LV_FONT_MONTSERRAT_26
+			select BR2_LV_USE_DEMO_WIDGETS if BR2_PACKAGE_LVGL_VERSION_9
+			select BR2_PACKAGE_LVGL_ENABLE_LV_DEMOS
+		config BR2_LV_DEMO_BENCHMARK_RGB565A8
+			bool "Use RGB565A8 images with 16 bit color depth instead of ARGB8565"
+			depends on BR2_LV_USE_DEMO_BENCHMARK && BR2_PACKAGE_LVGL_VERSION_8
+			default n
 
-			config BR2_LV_USE_DEMO_RENDER
-				bool "Render test for each primitives. Requires at least 480x272 display"
-				depends on BR2_PACKAGE_LVGL_VERSION_9
-				default n
+		config BR2_LV_USE_DEMO_RENDER
+			bool "Render test for each primitives. Requires at least 480x272 display"
+			depends on BR2_PACKAGE_LVGL_VERSION_9
+			select BR2_PACKAGE_LVGL_ENABLE_LV_DEMOS
+			default n
 
-			config BR2_LV_USE_DEMO_SCROLL
-				bool "Scroll settings test for LVGL"
-				depends on BR2_PACKAGE_LVGL_VERSION_9
-				default n
+		config BR2_LV_USE_DEMO_STRESS
+			bool "Stress test for LVGL"
+			select BR2_PACKAGE_LVGL_ENABLE_LV_DEMOS
+			default n
 
-			config BR2_LV_USE_DEMO_STRESS
-				bool "Stress test for LVGL"
-				default n
+		config BR2_LV_USE_DEMO_MUSIC
+			bool "Music player demo"
+			select BR2_PACKAGE_LVGL_ENABLE_LV_DEMOS
+			default n
+		config BR2_LV_DEMO_MUSIC_SQUARE
+			bool "Enable Square"
+			depends on BR2_LV_USE_DEMO_MUSIC
+			default n
+		config BR2_LV_DEMO_MUSIC_LANDSCAPE
+			bool "Enable Landscape"
+			depends on BR2_LV_USE_DEMO_MUSIC
+			default n
+		config BR2_LV_DEMO_MUSIC_ROUND
+			bool "Enable Round"
+			depends on BR2_LV_USE_DEMO_MUSIC
+			default n
+		config BR2_LV_DEMO_MUSIC_LARGE
+			bool "Enable Large"
+			depends on BR2_LV_USE_DEMO_MUSIC
+			select BR2_LV_FONT_MONTSERRAT_16
+			select BR2_LV_FONT_MONTSERRAT_22
+			select BR2_LV_FONT_MONTSERRAT_32
+			default n
+		config BR2_LV_DEMO_MUSIC_SMALL
+			bool
+			depends on BR2_LV_USE_DEMO_MUSIC
+			select BR2_LV_FONT_MONTSERRAT_12
+			select BR2_LV_FONT_MONTSERRAT_16
+			default y if !BR2_LV_DEMO_MUSIC_LARGE
+		config BR2_LV_DEMO_MUSIC_AUTO_PLAY
+			bool "Enable Auto play"
+			depends on BR2_LV_USE_DEMO_MUSIC
+			default n
 
-			config BR2_LV_USE_DEMO_TRANSFORM
-				bool "Transform test for LVGL"
-				default n
-				depends on BR2_PACKAGE_LVGL_VERSION_9
-				select BR2_LV_FONT_MONTSERRAT_18
+		config BR2_LV_USE_DEMO_FLEX_LAYOUT
+			bool "Flex layout previewer"
+			depends on BR2_PACKAGE_LVGL_VERSION_9
+			select BR2_PACKAGE_LVGL_ENABLE_LV_DEMOS
+			default n
+		config BR2_LV_USE_DEMO_MULTILANG
+			bool "multi-language demo"
+			depends on BR2_PACKAGE_LVGL_VERSION_9
+			select BR2_PACKAGE_LVGL_ENABLE_LV_DEMOS
+			default n
+		config LV_USE_DEMO_SMARTWATCH
+			depends on BR2_PACKAGE_LVGL_VERSION_9
+			select BR2_PACKAGE_LVGL_ENABLE_LV_DEMOS
+			bool "Smartwatch demo"
+		config LV_USE_DEMO_EBIKE
+			depends on BR2_PACKAGE_LVGL_VERSION_9
+			select BR2_PACKAGE_LVGL_ENABLE_LV_DEMOS
+			bool "Ebike demo"
+		config LV_USE_DEMO_HIGH_RES
+			depends on BR2_PACKAGE_LVGL_VERSION_9
+			select BR2_PACKAGE_LVGL_ENABLE_LV_DEMOS
+			bool "High resolution demo"
 
-			config BR2_LV_USE_DEMO_MUSIC
-				bool "Music player demo"
-				default n
-			config BR2_LV_DEMO_MUSIC_SQUARE
-				bool "Enable Square"
-				depends on BR2_LV_USE_DEMO_MUSIC
-				default n
-			config BR2_LV_DEMO_MUSIC_LANDSCAPE
-				bool "Enable Landscape"
-				depends on BR2_LV_USE_DEMO_MUSIC
-				default n
-			config BR2_LV_DEMO_MUSIC_ROUND
-				bool "Enable Round"
-				depends on BR2_LV_USE_DEMO_MUSIC
-				default n
-			config BR2_LV_DEMO_MUSIC_LARGE
-				bool "Enable Large"
-				depends on BR2_LV_USE_DEMO_MUSIC
-				select BR2_LV_FONT_MONTSERRAT_16
-				select BR2_LV_FONT_MONTSERRAT_22
-				select BR2_LV_FONT_MONTSERRAT_32
-				default n
-			config BR2_LV_DEMO_MUSIC_SMALL
-				bool
-				depends on BR2_LV_USE_DEMO_MUSIC
-				select BR2_LV_FONT_MONTSERRAT_12
-				select BR2_LV_FONT_MONTSERRAT_16
-				default y if !BR2_LV_DEMO_MUSIC_LARGE
-			config BR2_LV_DEMO_MUSIC_AUTO_PLAY
-				bool "Enable Auto play"
-				depends on BR2_LV_USE_DEMO_MUSIC
-				default n
-
-			config BR2_LV_USE_DEMO_FLEX_LAYOUT
-				bool "Flex layout previewer"
-				depends on BR2_PACKAGE_LVGL_VERSION_9
-				default n
-			config BR2_LV_USE_DEMO_MULTILANG
-				bool "multi-language demo"
-				depends on BR2_PACKAGE_LVGL_VERSION_9
-				default n
-			config LV_USE_DEMO_SMARTWATCH
-				depends on BR2_PACKAGE_LVGL_VERSION_9
-				bool "Smartwatch demo"
-			config LV_USE_DEMO_EBIKE
-				depends on BR2_PACKAGE_LVGL_VERSION_9
-				bool "Ebike demo"
-			config LV_USE_DEMO_HIGH_RES
-				depends on BR2_PACKAGE_LVGL_VERSION_9
-				bool "High resolution demo"
-
-		endif
+	endmenu
 endmenu
