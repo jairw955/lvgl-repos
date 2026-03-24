@@ -35,3 +35,35 @@ add_flag_if_config(){
         FLAGS="${FLAGS} ${flag}"
     fi
 }
+
+# 按 HOST + ARCH 追加 Buildroot 工具链的 CMake 参数（sysroot 与编译器）。
+# HOST：工具链根目录（如 buildroot 的 output/host），末尾斜杠可有可无。
+# ARCH：aarch64 → ${HOST}/aarch64-buildroot-linux-gnu/sysroot，${HOST}/bin/aarch64-buildroot-linux-gnu-gcc
+#       arm     → ${HOST}/arm-buildroot-linux-gnueabihf/sysroot，${HOST}/bin/arm-buildroot-linux-gnueabihf-gcc
+# 未同时设置 HOST 与 ARCH 时不追加，由 CMake 使用本机默认编译器。
+# 参数：要追加的变量名，默认为 FLAGS（lvgl8/lvgl9 传入 LVGL_FLAGS）。
+append_host_arch_cmake_flags(){
+    local _varname="${1:-FLAGS}"
+    declare -n _ref="$_varname"
+    if [ -z "${HOST:-}" ] || [ -z "${ARCH:-}" ]; then
+        return 0
+    fi
+    local host="${HOST%/}"
+    local triple=""
+    case "$ARCH" in
+        aarch64) triple="aarch64-buildroot-linux-gnu" ;;
+        arm)     triple="arm-buildroot-linux-gnueabihf" ;;
+        *)
+            echo "Error: unsupported ARCH='$ARCH' (expected aarch64 or arm)" >&2
+            return 1
+            ;;
+    esac
+    local sysroot="${host}/${triple}/sysroot"
+    local prefix="${host}/bin/${triple}-"
+    _ref="${_ref} -DCMAKE_SYSTEM_NAME=Linux -DCMAKE_SYSROOT=${sysroot}"
+    _ref="${_ref} -DCMAKE_FIND_ROOT_PATH=${sysroot}"
+    _ref="${_ref} -DCMAKE_FIND_ROOT_PATH_MODE_PROGRAM=NEVER"
+    _ref="${_ref} -DCMAKE_FIND_ROOT_PATH_MODE_LIBRARY=BOTH"
+    _ref="${_ref} -DCMAKE_FIND_ROOT_PATH_MODE_INCLUDE=BOTH"
+    _ref="${_ref} -DCMAKE_C_COMPILER=${prefix}gcc -DCMAKE_CXX_COMPILER=${prefix}g++"
+}

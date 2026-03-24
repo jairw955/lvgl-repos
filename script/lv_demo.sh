@@ -4,7 +4,6 @@
 FILE=$(realpath $0)
 DIR=$(dirname $FILE)
 ROOT_PATH=${ROOT_PATH:-${DIR}/..}
-FLAGS=${FLAGS:-"-DCMAKE_BUILD_TYPE=${BUILD_TYPE}"}
 INSTALL_PATH=${INSTALL_PATH:-${ROOT_PATH}/install}
 
 # 加载 build helper 函数
@@ -12,9 +11,11 @@ if [ -f "$DIR/build-helper" ]; then
     source "$DIR/build-helper"
 fi
 
+FLAGS=${FLAGS:-"-DCMAKE_BUILD_TYPE=${BUILD_TYPE}"}
 FLAGS="${FLAGS} -DLV_DEMO=y -DPC_SIMULATOR=y"
 add_flag_if_config "BR2_PACKAGE_LVGL_VERSION_8" "-DLVGL_V8=1"
 add_flag_if_config "BR2_PACKAGE_LVGL_VERSION_9" "-DLVGL_V9=1"
+append_host_arch_cmake_flags FLAGS || exit 1
 
 configure(){
     rm ${ROOT_PATH}/app/build -rf

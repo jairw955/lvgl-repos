@@ -125,6 +125,7 @@ add_flag_if_config "BR2_LV_USE_GPU_SDL" "-DLV_USE_GPU_SDL=1 -DLV_DRV_USE_SDL_GPU
 add_flag_if_config "BR2_LV_USE_SDL" "-DLV_USE_GPU_SDL=1 -DLV_DRV_USE_SDL_GPU=1"
 add_flag_if_config "BR2_LV_USE_LINUX_DRM" "-DLV_DRV_USE_DRM=1"
 add_flag_if_config "BR2_LV_DRM_USE_RGA" "-DLV_DRV_USE_RGA=1"
+add_flag_if_config "BR2_LV_DRM_USE_EGL" "-DLV_DRV_USE_OPENGLES=1"
 add_flag_if_config "BR2_LV_USE_RKADK" "-DLV_DRV_USE_RKADK=1"
 
 # 如果找到 hook 文件，则调用它并传入 action 参数

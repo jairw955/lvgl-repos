@@ -49,6 +49,11 @@ help:
 	@echo "  make lvgl8-configure    - Configure lvgl8"
 	@echo "  make lvgl9-build        - Build lvgl9"
 	@echo ""
+	@echo "Cross-compile (optional, Buildroot host layout):"
+	@echo "  HOST=/path/to/output/host ARCH=aarch64 make lvgl9-build"
+	@echo "  HOST=... ARCH=arm make lvgl8-build"
+	@echo "  (omit HOST or ARCH to use native toolchain)"
+	@echo ""
 
 # 配置菜单
 menu:
