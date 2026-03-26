@@ -465,8 +465,8 @@ void lv_ime_pinyin_set_mode(lv_obj_t * obj, lv_ime_pinyin_mode_t mode)
 #if LV_IME_PINYIN_USE_K9_MODE
     if(pinyin_ime->mode == LV_IME_PINYIN_MODE_K9) {
         pinyin_k9_init_data(obj);
-        lv_keyboard_set_map(pinyin_ime->kb, LV_KEYBOARD_MODE_USER_1, (const char *)lv_btnm_def_pinyin_k9_map,
-                            (const)default_kb_ctrl_k9_map);
+        lv_keyboard_set_map(pinyin_ime->kb, LV_KEYBOARD_MODE_USER_1, (const char **)lv_btnm_def_pinyin_k9_map,
+                            default_kb_ctrl_k9_map);
         lv_keyboard_set_mode(pinyin_ime->kb, LV_KEYBOARD_MODE_USER_1);
     }
 #endif
@@ -712,10 +712,10 @@ static void lv_ime_pinyin_kb_event(lv_event_t * e)
         }
         else if(strcmp(txt, LV_SYMBOL_KEYBOARD) == 0) {
             if(pinyin_ime->mode == LV_IME_PINYIN_MODE_K26) {
-                lv_ime_pinyin_set_mode(pinyin_ime, LV_IME_PINYIN_MODE_K9);
+                lv_ime_pinyin_set_mode(obj, LV_IME_PINYIN_MODE_K9);
             }
             else {
-                lv_ime_pinyin_set_mode(pinyin_ime, LV_IME_PINYIN_MODE_K26);
+                lv_ime_pinyin_set_mode(obj, LV_IME_PINYIN_MODE_K26);
                 lv_keyboard_set_mode(pinyin_ime->kb, LV_KEYBOARD_MODE_TEXT_LOWER);
             }
             pinyin_ime_clear_data(obj);
