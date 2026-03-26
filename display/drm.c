@@ -906,6 +906,14 @@ int drm_exit(void)
     if (!dev)
         return 0;
 
+    if (dev->crtc_id > 0) {
+        int ret = drmModeSetCrtc(dev->fd, dev->crtc_id, 0, 0, 0, NULL, 0, NULL);
+        if (ret)
+            LV_LOG_WARN("Failed to disable CRTC %d: %d", dev->crtc_id, ret);
+        else
+            LV_LOG_INFO("CRTC %d disabled", dev->crtc_id);
+    }
+
     free_fb(dev);
     drm_free(dev);
 
