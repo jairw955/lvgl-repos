@@ -12,13 +12,14 @@
 
 #if defined(LV_USE_SDL) && LV_USE_SDL
 #include <lvgl/src/drivers/sdl/lv_sdl_window.h>
+#include LV_SDL_INCLUDE_PATH
 #endif
 
 #if defined(LV_USE_RKADK) && LV_USE_RKADK
 #include <lvgl/src/drivers/display/rkadk/rkadk.h>
 #endif
 
-void lv_port_disp_init(lv_coord_t hor_res, lv_coord_t ver_res, int rot)
+void lv_port_disp_init(lv_coord_t hor_res, lv_coord_t ver_res, int rot, bool fullscreen)
 {
     lv_display_rotation_t lvgl_rot = LV_DISPLAY_ROTATION_0;
     lv_display_t *disp;
@@ -50,8 +51,15 @@ void lv_port_disp_init(lv_coord_t hor_res, lv_coord_t ver_res, int rot)
 #endif
 
 #if defined(LV_USE_SDL) && LV_USE_SDL
-    LV_LOG_USER("LV_USE_SDL");
+    LV_LOG_USER("LV_USE_SDL %d %d %s", hor_res, ver_res, fullscreen ? "fullscreen" : "windowed");
     disp = lv_sdl_window_create(hor_res, ver_res);
+    if (disp)
+    {
+        SDL_Window *sdl_win = lv_sdl_window_get_window(disp);
+        if (sdl_win && fullscreen)
+            SDL_SetWindowFullscreen(sdl_win, SDL_WINDOW_FULLSCREEN_DESKTOP);
+        // lv_display_set_rotation(disp, lvgl_rot);
+    }
 #endif
 
 #if defined(LV_USE_RKADK) && LV_USE_RKADK

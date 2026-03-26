@@ -9,7 +9,7 @@
 #include <lv_drivers/rkadk/rkadk.h>
 #include <lv_drivers/sdl/sdl_gpu.h>
 
-void lv_port_disp_init(lv_coord_t hor_res, lv_coord_t ver_res, int rot)
+void lv_port_disp_init(lv_coord_t hor_res, lv_coord_t ver_res, int rot, bool fullscreen)
 {
     lv_disp_rot_t lvgl_rot = LV_DISP_ROT_NONE;
     lv_disp_t *disp;
@@ -35,7 +35,7 @@ void lv_port_disp_init(lv_coord_t hor_res, lv_coord_t ver_res, int rot)
 
 #if USE_DRM
     LV_LOG_USER("LV_USE_LINUX_DRM");
-    drm_disp_drv_init(rot);
+    drm_disp_drv_init(hor_res, ver_res, rot);
 #endif
 
 #if USE_SDL_GPU
@@ -44,7 +44,10 @@ void lv_port_disp_init(lv_coord_t hor_res, lv_coord_t ver_res, int rot)
     monitor_init();
     SDL_LogSetPriority(SDL_LOG_CATEGORY_APPLICATION, SDL_LOG_PRIORITY_WARN);
     disp_drv.rotated = lvgl_rot;
-    sdl_disp_drv_init(&disp_drv, hor_res, ver_res, 0);
+    uint64_t win_flags = 0;
+    if (fullscreen)
+        win_flags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
+    sdl_disp_drv_init(&disp_drv, hor_res, ver_res, win_flags);
 
     disp = lv_disp_drv_register(&disp_drv);
 #endif

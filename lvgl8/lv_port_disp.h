@@ -10,7 +10,7 @@
 extern "C" {
 #endif
 
-void lv_port_disp_init(lv_coord_t hor_res, lv_coord_t ver_res, int rot);
+void lv_port_disp_init(lv_coord_t hor_res, lv_coord_t ver_res, int rot, bool fullscreen);
 
 #ifdef __cplusplus
 } /*extern "C"*/

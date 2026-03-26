@@ -48,7 +48,7 @@ static void lv_sysdelay(uint32_t ms)
     usleep(ms * 1000);
 }
 
-void lv_port_init(int width, int height, int rotation)
+void lv_port_init(int width, int height, int rotation, bool fullscreen)
 {
     const char *buf;
 
@@ -62,7 +62,7 @@ void lv_port_init(int width, int height, int rotation)
     lv_tick_set_cb(lv_systick);
     lv_delay_set_cb(lv_sysdelay);
 
-    lv_port_disp_init(width, height, rotation);
+    lv_port_disp_init(width, height, rotation, fullscreen);
     lv_port_indev_init(g_indev_rotation + rotation);
 }
 

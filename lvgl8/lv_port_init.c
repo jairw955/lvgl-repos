@@ -21,7 +21,7 @@ static void print_cb(const char *buf)
     printf("%s", buf);
 }
 
-void lv_port_init(int width, int height, int rotation)
+void lv_port_init(int width, int height, int rotation, bool fullscreen)
 {
     const char *buf;
 
@@ -33,7 +33,7 @@ void lv_port_init(int width, int height, int rotation)
         log_level = buf[0] - '0';
     lv_log_register_print_cb(print_cb);
 
-    lv_port_disp_init(width, height, rotation);
+    lv_port_disp_init(width, height, rotation, fullscreen);
     lv_port_indev_init(g_indev_rotation + rotation);
 }
 
