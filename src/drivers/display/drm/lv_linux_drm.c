@@ -1101,6 +1101,15 @@ err_drm_open:
 
 static void drm_deinit(drm_device_t *dev)
 {
+    /* Disable CRTC to turn off display output */
+    if (dev->crtc_id > 0) {
+        int ret = drmModeSetCrtc(dev->fd, dev->crtc_id, 0, 0, 0, NULL, 0, NULL);
+        if (ret)
+            LV_LOG_WARN("Failed to disable CRTC %d: %d", dev->crtc_id, ret);
+        else
+            LV_LOG_INFO("CRTC %d disabled", dev->crtc_id);
+    }
+
     drm_free(dev);
     drm_config_file_deinit(dev);
 
@@ -1514,14 +1523,13 @@ int lv_drm_disp_delete(lv_display_t *disp)
     if (!dev)
         goto end;
 
-    dev->quit = 0;
+    dev->quit = 1;
     pthread_join(dev->pid, NULL);
 
     drm_buffer_destroy(dev);
 
     drm_deinit(dev);
 
-    lv_free(dev->disp_buf);
     lv_free(dev);
 end:
     lv_display_delete(disp);
